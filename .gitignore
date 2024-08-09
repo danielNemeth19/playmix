@@ -21,6 +21,7 @@ coverage.html
 profiling/*.pprof
 
 # Test files
+*.xspf
 
 # Notes about the API
 notes

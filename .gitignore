@@ -23,5 +23,5 @@ profiling/*.pprof
 # Test files
 *.xspf
 
-# Notes about the API
+# Notes about xspf format
 notes

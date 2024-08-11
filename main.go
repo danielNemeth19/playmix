@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
+	"os"
 )
 
 const (
@@ -37,6 +38,15 @@ type PlayList struct {
 	Tl       TrackList `xml:"trackList"`
 }
 
+func ListFiles() {
+	path := "/path/to/files"
+	files, _ := os.ReadDir(path)
+	for i, v := range files {
+		info, _ := v.Info()
+		fmt.Printf("key: %d -- name: %s\n", i, info.Name())
+	}
+}
+
 func main() {
 	ext := &Extension{Application: ExtensionApplication, Id: "01"}
 	extOut, err := xml.MarshalIndent(ext, "", "  ")
@@ -68,4 +78,5 @@ func main() {
 		fmt.Printf("fix this later, now error: %s\n", err)
 	}
 	fmt.Println(xml.Header + string(plOut))
+	ListFiles()
 }

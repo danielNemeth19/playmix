@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -15,7 +16,7 @@ const (
 type Extension struct {
 	XMLName     xml.Name `xml:"extension"`
 	Application string   `xml:"application,attr"`
-	Id          string   `xml:"vlc:id"`
+	Id          int      `xml:"vlc:id"`
 }
 
 type Track struct {
@@ -38,45 +39,54 @@ type PlayList struct {
 	Tl       TrackList `xml:"trackList"`
 }
 
-func ListFiles() {
-	path := "/path/to/files"
-	files, _ := os.ReadDir(path)
+func buildTrackList(p string) *TrackList {
+	files, err := os.ReadDir(p)
+	if err != nil {
+		log.Fatalf("Error raised: %s\n", err)
+	}
+	trackList := &TrackList{}
+	var tracks []*Track
 	for i, v := range files {
-		info, _ := v.Info()
-		fmt.Printf("key: %d -- name: %s\n", i, info.Name())
+		ext := &Extension{Application: ExtensionApplication, Id: i}
+		location := "file://" + p + v.Name()
+		track := &Track{Location: location, Ext: *ext}
+		tracks = append(tracks, track)
+	}
+	trackList.Tracks = tracks
+	return trackList
+}
+
+func getPath() string {
+	path := os.Getenv("MEDIA_SOURCE")
+	if path == "" {
+		log.Fatal("MEDIA_SOURCE is not set")
+	}
+	return path
+}
+
+func dumpConsole(s any) {
+	out, _ := xml.MarshalIndent(s, " ", "  ")
+	fmt.Println(xml.Header + string(out))
+}
+
+func writePlayList(s any) {
+    outFile, err := os.Create("temp.xspf")
+	if err != nil {
+        log.Fatalf("Error creating file: %s\n", err)
+	}
+    outFile.WriteString(xml.Header)
+    encoder := xml.NewEncoder(outFile)
+    encoder.Indent("", "\t")
+    err = encoder.Encode(&s)
+	if err != nil {
+		log.Fatalf("Error in encoding xml: %s\n", err)
 	}
 }
 
 func main() {
-	ext := &Extension{Application: ExtensionApplication, Id: "01"}
-	extOut, err := xml.MarshalIndent(ext, "", "  ")
-	if err != nil {
-		fmt.Printf("fix this later, now error: %s\n", err)
-	}
-	fmt.Println(string(extOut))
+	path := getPath()
+	trackList := buildTrackList(path)
 
-	track1 := &Track{Location: "/mnt/path/", Ext: *ext}
-	out, err := xml.MarshalIndent(track1, " ", "  ")
-	if err != nil {
-		fmt.Printf("fix this later, now error: %s\n", err)
-	}
-	fmt.Println(string(out))
-	track2 := &Track{Location: "/mnt/path/", Ext: Extension{Application: ExtensionApplication, Id: "02"}}
-
-	tl := &TrackList{}
-	tl.Tracks = []*Track{track1, track2}
-
-	tlOut, err := xml.MarshalIndent(tl, " ", "  ")
-	if err != nil {
-		fmt.Printf("fix this later, now error: %s\n", err)
-	}
-	fmt.Println(string(tlOut))
-
-	pl := &PlayList{Xmlns: Xmlns, XmlnsVlc: XmlnsVlc, Version: "1", Title: "Test playlist", Tl: *tl}
-	plOut, err := xml.MarshalIndent(pl, " ", "  ")
-	if err != nil {
-		fmt.Printf("fix this later, now error: %s\n", err)
-	}
-	fmt.Println(xml.Header + string(plOut))
-	ListFiles()
+	pl := &PlayList{Xmlns: Xmlns, XmlnsVlc: XmlnsVlc, Version: "1", Title: "Test playlist", Tl: *trackList}
+	writePlayList(pl)
 }

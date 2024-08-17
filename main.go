@@ -69,18 +69,25 @@ func dumpConsole(s any) {
 	fmt.Println(xml.Header + string(out))
 }
 
-func writePlayList(s any) {
+func writePlayList(s any) error {
     outFile, err := os.Create("temp.xspf")
 	if err != nil {
-        log.Fatalf("Error creating file: %s\n", err)
+        return fmt.Errorf("Error creating file: %w\n", err)
 	}
-    outFile.WriteString(xml.Header)
+    defer outFile.Close()
+
+    _, err = outFile.WriteString(xml.Header)
+    if err != nil {
+        return fmt.Errorf("Error writing header: %w\n", err)
+    }
+
     encoder := xml.NewEncoder(outFile)
     encoder.Indent("", "\t")
     err = encoder.Encode(&s)
 	if err != nil {
-		log.Fatalf("Error in encoding xml: %s\n", err)
+		return fmt.Errorf("Error in encoding xml: %w\n", err)
 	}
+    return nil
 }
 
 func main() {

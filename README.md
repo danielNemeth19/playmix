@@ -46,6 +46,7 @@ This element represents a playlist item (not a node). It appears as an extension
 ```xml
 <vlc:item tid="42"/>
 ```
+It seems vlc actually ignores the tid attribute and uses the track id from the vlc:id element to determine the order of the tracks in the playlist.
 ### vlc:id
 
 This element specifies a track's id. It appears as an extension of the track **block** (under playlist/trackList/track/extension).

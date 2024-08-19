@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+    "path/filepath"
 )
 
 const (
@@ -39,6 +40,24 @@ type PlayList struct {
 	Tl       TrackList `xml:"trackList"`
 }
 
+type FolderContent struct {
+	Name string
+	Id   int
+}
+
+func getFolderContent(p string) ([]FolderContent, error) {
+    files, err := os.ReadDir(p)
+    if err != nil {
+        return nil, fmt.Errorf("Error raised: %w\n", err)
+    }
+    var content []FolderContent
+    for i, file := range files {
+        extension := filepath.Ext(file.Name())
+        fmt.Printf("File %d: %s, extension: %s\n", i, file.Name(), extension)
+    }
+    return content, nil
+}
+
 func buildTrackList(p string) *TrackList {
 	files, err := os.ReadDir(p)
 	if err != nil {
@@ -56,12 +75,12 @@ func buildTrackList(p string) *TrackList {
 	return trackList
 }
 
-func getPath() string {
+func getPath() (string, error) {
 	path := os.Getenv("MEDIA_SOURCE")
 	if path == "" {
-		log.Fatal("MEDIA_SOURCE is not set")
+		return "", fmt.Errorf("MEDIA_SOURCE environment variable not set")
 	}
-	return path
+	return path, nil
 }
 
 func dumpConsole(s any) {
@@ -70,28 +89,36 @@ func dumpConsole(s any) {
 }
 
 func writePlayList(s any) error {
-    outFile, err := os.Create("temp.xspf")
+	outFile, err := os.Create("temp.xspf")
 	if err != nil {
-        return fmt.Errorf("Error creating file: %w\n", err)
+		return fmt.Errorf("Error creating file: %w\n", err)
 	}
-    defer outFile.Close()
+	defer outFile.Close()
 
-    _, err = outFile.WriteString(xml.Header)
-    if err != nil {
-        return fmt.Errorf("Error writing header: %w\n", err)
-    }
+	_, err = outFile.WriteString(xml.Header)
+	if err != nil {
+		return fmt.Errorf("Error writing header: %w\n", err)
+	}
 
-    encoder := xml.NewEncoder(outFile)
-    encoder.Indent("", "\t")
-    err = encoder.Encode(&s)
+	encoder := xml.NewEncoder(outFile)
+	encoder.Indent("", "\t")
+	err = encoder.Encode(&s)
 	if err != nil {
 		return fmt.Errorf("Error in encoding xml: %w\n", err)
 	}
-    return nil
+	return nil
 }
 
 func main() {
-	path := getPath()
+	path, err := getPath()
+	if err != nil {
+		log.Fatalf("Error raised: %s\n", err)
+	}
+    content, err := getFolderContent(path)
+	if err != nil {
+		log.Fatalf("Error raised: %s\n", err)
+	}
+    fmt.Printf("Content: %v\n", content)
 	trackList := buildTrackList(path)
 
 	pl := &PlayList{Xmlns: Xmlns, XmlnsVlc: XmlnsVlc, Version: "1", Title: "Test playlist", Tl: *trackList}

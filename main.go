@@ -14,6 +14,8 @@ const (
 	XmlnsVlc             = "http://www.videolan.org/vlc/playlist/ns/0/"
 )
 
+var videoExtensions = []string{".mp4", ".mkv", ".avi", ".flv", ".mpeg"}
+
 type Extension struct {
 	XMLName     xml.Name `xml:"extension"`
 	Application string   `xml:"application,attr"`
@@ -45,7 +47,39 @@ type FolderContent struct {
 	Id   int
 }
 
+func isVideoFile(ext string) bool {
+    for _, v := range videoExtensions {
+        if v == ext {
+            return true
+        }
+    }
+    return false
+}
+
+func collectExtensions(p string, extensions *[]string, seen *map[string]bool) *[]string {
+    fmt.Println("Checking folder: ", p)
+    files, err := os.ReadDir(p) 
+    if err != nil {
+        log.Fatalf("Error raised: %s\n", err)
+    }
+    for _, obj := range files {
+        if obj.IsDir() {
+            extensions = collectExtensions(p + "/" + obj.Name(), extensions, seen)
+        } else {
+            extension := filepath.Ext(obj.Name())
+            if !(*seen)[extension] {
+                fmt.Printf("Seen first: %s -- %s, %v\n", extension, obj.Name(), obj.IsDir())
+                (*seen)[extension] = true
+                *extensions = append(*extensions, extension)
+            }
+        }
+    }
+    return extensions
+}
+
 func getFolderContent(p string) ([]FolderContent, error) {
+    extensions := []string{}
+    seen := map[string]bool{}
     files, err := os.ReadDir(p)
     if err != nil {
         return nil, fmt.Errorf("Error raised: %w\n", err)
@@ -54,7 +88,13 @@ func getFolderContent(p string) ([]FolderContent, error) {
     for i, file := range files {
         extension := filepath.Ext(file.Name())
         fmt.Printf("File %d: %s, extension: %s\n", i, file.Name(), extension)
+        fmt.Printf("Verdict: %v\n", isVideoFile(extension))
+        if !seen[extension] {
+            seen[extension] = true
+            extensions = append(extensions, extension)
+        }
     }
+    fmt.Printf("Extensions: %v\n", extensions)
     return content, nil
 }
 
@@ -114,13 +154,17 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error raised: %s\n", err)
 	}
-    content, err := getFolderContent(path)
-	if err != nil {
-		log.Fatalf("Error raised: %s\n", err)
-	}
-    fmt.Printf("Content: %v\n", content)
-	trackList := buildTrackList(path)
+    extensions := &[]string{}
+    seen := &map[string]bool{}
+    res := collectExtensions(path, extensions, seen)
+    fmt.Printf("Extensions: %v\n", *res)
+    // content, err := getFolderContent(path)
+	// if err != nil {
+		// log.Fatalf("Error raised: %s\n", err)
+	// }
+    // fmt.Printf("Content: %v\n", content)
+	// trackList := buildTrackList(path)
 
-	pl := &PlayList{Xmlns: Xmlns, XmlnsVlc: XmlnsVlc, Version: "1", Title: "Test playlist", Tl: *trackList}
-	writePlayList(pl)
+	// pl := &PlayList{Xmlns: Xmlns, XmlnsVlc: XmlnsVlc, Version: "1", Title: "Test playlist", Tl: *trackList}
+	// writePlayList(pl)
 }

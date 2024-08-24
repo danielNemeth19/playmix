@@ -1,14 +1,13 @@
 package main
 
 import (
-	// "bufio"
 	"encoding/xml"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
-	"github.com/abema/go-mp4"
+    "github.com/alfg/mp4"
 )
 
 const (
@@ -152,52 +151,37 @@ func writePlayList(s any) error {
 	return nil
 }
 
-func testMetaData(p string) {
-	f, err := os.Open(p)
+func getDuration(p string) (float64, error) {
+	file, err := os.Open(p)
 	if err != nil {
-		log.Fatalf("Error raised: %s\n", err)
+        return 0, fmt.Errorf("Error raised: %w\n", err)
 	}
-	defer f.Close()
-	_, err = mp4.ReadBoxStructure(f, func(h *mp4.ReadHandle) (interface{}, error) {
-		if h.BoxInfo.Type.String() == "mvhd" {
-			fmt.Println("depth", len(h.Path))
+	defer file.Close()
+    
+    info, err := file.Stat()
+	if err != nil {
+        return 0, fmt.Errorf("Error raised: %w\n", err)
+	}
+    mp4, err := mp4.OpenFromReader(file, info.Size())
+    fmt.Println("Ftyp name:", mp4.Ftyp.Name)
+    fmt.Println("MajorBrand:", mp4.Ftyp.MajorBrand)
+    fmt.Println("MinorVersion:", mp4.Ftyp.MinorVersion)
+    fmt.Println("CompatibleBrands:", mp4.Ftyp.CompatibleBrands)
 
-			// Box Type (e.g. "mdhd", "tfdt", "mdat")
-			fmt.Println("type", h.BoxInfo.Type.String())
+	fmt.Println(mp4.Moov.Name, mp4.Moov.Size)
+	fmt.Println(mp4.Moov.Mvhd.Name)
+	fmt.Println(mp4.Moov.Mvhd.Version)
+	fmt.Println(mp4.Moov.Mvhd.Volume)
+    fmt.Printf("Duration: %d\n", mp4.Moov.Mvhd.Duration)
+    fmt.Printf("Time scale: %d\n", mp4.Moov.Mvhd.Timescale)
+    fmt.Printf("Duration in seconds: %f\n", float64(mp4.Moov.Mvhd.Duration) / float64(mp4.Moov.Mvhd.Timescale))
 
-			// Box Size
-			fmt.Println("size", h.BoxInfo.Size)
-            box, _, err := h.ReadPayload()
-            if err != nil {
-                return nil, err
-            }
-			str, err := mp4.Stringify(box, h.BoxInfo.Context)
-            if err != nil {
-                fmt.Printf("Error raised: %s\n", err)
-                return nil, err
-            }
-            fmt.Println(str)
-		}
+	fmt.Println("trak size: ", mp4.Moov.Traks[0].Size)
+	fmt.Println("mdhd language: ", mp4.Moov.Traks[0].Mdia.Mdhd.LanguageString)
+	fmt.Println("trak size: ", mp4.Moov.Traks[1].Size)
+	fmt.Println("mdat size: ", mp4.Mdat.Size)
+    return 1, nil
 
-		// if h.BoxInfo.IsSupportedType() {
-			// Payload
-			// box, _, err := h.ReadPayload()
-			// if err != nil {
-				// return nil, err
-			// }
-			// str, err := mp4.Stringify(box, h.BoxInfo.Context)
-			// if err != nil {
-				// return nil, err
-			// }
-			// f, _ := os.Create("temp.txt")
-			// buffer := bufio.NewWriter(f)
-			// buffer.WriteString(str)
-
-			// Expands children
-			// return h.Expand()
-		// }
-		return nil, nil
-	})
 }
 
 func main() {
@@ -205,12 +189,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error raised: %s\n", err)
 	}
-	// extensions := &[]string{}
-	// seen := &map[string]bool{}
-	// res := collectExtensions(path, extensions, seen)
-	// fmt.Printf("Extensions: %v\n", *res)
+    // getDuration(path)
 
-	testMetaData(path)
+
+
+	extensions := &[]string{}
+	seen := &map[string]bool{}
+	res := collectExtensions(path, extensions, seen)
+	fmt.Printf("Extensions: %v\n", *res)
+
 	// content, err := getFolderContent(path)
 	// if err != nil {
 	// log.Fatalf("Error raised: %s\n", err)

@@ -20,6 +20,39 @@ func dumpConsole(s any) {
 	fmt.Println(xml.Header + string(out))
 }
 
+func isMediaFile(ext string) bool {
+	for _, v := range mediaExtensions {
+		if v == ext {
+			return true
+		}
+	}
+	return false
+}
+
+func getFolderContent(p string) ([]MediaItem, error) {
+	files, err := os.ReadDir(p)
+	if err != nil {
+		return nil, err
+	}
+	var content []MediaItem
+	for i, file := range files {
+		extension := filepath.Ext(file.Name())
+        // could have a condition check for item being a file..
+		if isMediaFile(extension) {
+			fmt.Println(i, file.Name())
+			duration, err := getDuration(p + "/" + file.Name())
+			if err != nil {
+				return nil, err
+			}
+			item := MediaItem{Id: i, Name: file.Name(), Duration: duration}
+			content = append(content, item)
+		} else {
+            fmt.Println("not a video file:", file.Name())
+        }
+	}
+	return content, nil
+}
+
 func collectExtensions(p string, extensions *[]string, seen *map[string]bool) (*[]string, error) {
 	fmt.Println("Checking folder: ", p)
 	files, err := os.ReadDir(p)

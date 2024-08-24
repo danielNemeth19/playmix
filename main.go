@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/xml"
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
-    "github.com/alfg/mp4"
+	"github.com/alfg/mp4"
 )
 
 const (
@@ -44,9 +45,10 @@ type PlayList struct {
 	Tl       TrackList `xml:"trackList"`
 }
 
-type FolderContent struct {
-	Name string
-	Id   int
+type MediaItem struct {
+	Name     string
+	Id       int
+	Duration float64
 }
 
 func isVideoFile(ext string) bool {
@@ -58,45 +60,26 @@ func isVideoFile(ext string) bool {
 	return false
 }
 
-func collectExtensions(p string, extensions *[]string, seen *map[string]bool) *[]string {
-	fmt.Println("Checking folder: ", p)
+func getFolderContent(p string) ([]MediaItem, error) {
 	files, err := os.ReadDir(p)
 	if err != nil {
-		log.Fatalf("Error raised: %s\n", err)
+		return nil, err
 	}
-	for _, obj := range files {
-		if obj.IsDir() {
-			extensions = collectExtensions(p+"/"+obj.Name(), extensions, seen)
-		} else {
-			extension := filepath.Ext(obj.Name())
-			if !(*seen)[extension] {
-				fmt.Printf("Seen first: %s -- %s, %v\n", extension, obj.Name(), obj.IsDir())
-				(*seen)[extension] = true
-				*extensions = append(*extensions, extension)
-			}
-		}
-	}
-	return extensions
-}
-
-func getFolderContent(p string) ([]FolderContent, error) {
-	extensions := []string{}
-	seen := map[string]bool{}
-	files, err := os.ReadDir(p)
-	if err != nil {
-		return nil, fmt.Errorf("Error raised: %w\n", err)
-	}
-	var content []FolderContent
+	var content []MediaItem
 	for i, file := range files {
 		extension := filepath.Ext(file.Name())
-		fmt.Printf("File %d: %s, extension: %s\n", i, file.Name(), extension)
-		fmt.Printf("Verdict: %v\n", isVideoFile(extension))
-		if !seen[extension] {
-			seen[extension] = true
-			extensions = append(extensions, extension)
-		}
+		if isVideoFile(extension) {
+			fmt.Println(i, file.Name())
+			duration, err := getDuration(p + "/" + file.Name())
+			if err != nil {
+				return nil, err
+			}
+			item := MediaItem{Id: i, Name: file.Name(), Duration: duration}
+			content = append(content, item)
+		} else {
+            fmt.Println("not a video file:", file.Name())
+        }
 	}
-	fmt.Printf("Extensions: %v\n", extensions)
 	return content, nil
 }
 
@@ -115,19 +98,6 @@ func buildTrackList(p string) *TrackList {
 	}
 	trackList.Tracks = tracks
 	return trackList
-}
-
-func getPath() (string, error) {
-	path := os.Getenv("MEDIA_SOURCE")
-	if path == "" {
-		return "", fmt.Errorf("MEDIA_SOURCE environment variable not set")
-	}
-	return path, nil
-}
-
-func dumpConsole(s any) {
-	out, _ := xml.MarshalIndent(s, " ", "  ")
-	fmt.Println(xml.Header + string(out))
 }
 
 func writePlayList(s any) error {
@@ -152,36 +122,24 @@ func writePlayList(s any) error {
 }
 
 func getDuration(p string) (float64, error) {
+	log.Printf("video file to check: %s\n", p)
 	file, err := os.Open(p)
 	if err != nil {
-        return 0, fmt.Errorf("Error raised: %w\n", err)
+		return 0, err
 	}
 	defer file.Close()
-    
-    info, err := file.Stat()
+
+	info, err := file.Stat()
 	if err != nil {
-        return 0, fmt.Errorf("Error raised: %w\n", err)
+		return 0, err
 	}
-    mp4, err := mp4.OpenFromReader(file, info.Size())
-    fmt.Println("Ftyp name:", mp4.Ftyp.Name)
-    fmt.Println("MajorBrand:", mp4.Ftyp.MajorBrand)
-    fmt.Println("MinorVersion:", mp4.Ftyp.MinorVersion)
-    fmt.Println("CompatibleBrands:", mp4.Ftyp.CompatibleBrands)
+	mp4, err := mp4.OpenFromReader(file, info.Size())
+	fmt.Printf("Duration: %d\n", mp4.Moov.Mvhd.Duration)
+	fmt.Printf("Time scale: %d\n", mp4.Moov.Mvhd.Timescale)
+	fmt.Printf("Duration in seconds: %f\n", float64(mp4.Moov.Mvhd.Duration)/float64(mp4.Moov.Mvhd.Timescale))
 
-	fmt.Println(mp4.Moov.Name, mp4.Moov.Size)
-	fmt.Println(mp4.Moov.Mvhd.Name)
-	fmt.Println(mp4.Moov.Mvhd.Version)
-	fmt.Println(mp4.Moov.Mvhd.Volume)
-    fmt.Printf("Duration: %d\n", mp4.Moov.Mvhd.Duration)
-    fmt.Printf("Time scale: %d\n", mp4.Moov.Mvhd.Timescale)
-    fmt.Printf("Duration in seconds: %f\n", float64(mp4.Moov.Mvhd.Duration) / float64(mp4.Moov.Mvhd.Timescale))
-
-	fmt.Println("trak size: ", mp4.Moov.Traks[0].Size)
-	fmt.Println("mdhd language: ", mp4.Moov.Traks[0].Mdia.Mdhd.LanguageString)
-	fmt.Println("trak size: ", mp4.Moov.Traks[1].Size)
-	fmt.Println("mdat size: ", mp4.Mdat.Size)
-    return 1, nil
-
+    duration := float64(mp4.Moov.Mvhd.Duration) / float64(mp4.Moov.Mvhd.Timescale)
+	return duration, nil
 }
 
 func main() {
@@ -189,22 +147,25 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error raised: %s\n", err)
 	}
-    // getDuration(path)
+	log.Printf("Path to be used: %s\n", path)
 
+	extFlag := flag.Bool("ext", false, "If specified, collects unique file extensions")
+	flag.Parse()
 
+	fmt.Printf("Ext flag: %v\n", *extFlag)
+	if *extFlag {
+		extensions, err := getExtensions(path)
+		if err != nil {
+			log.Fatalf("Error during extension collection: %s\n", err)
+		}
+		fmt.Printf("Extensions: %v\n", *extensions)
+	}
 
-	extensions := &[]string{}
-	seen := &map[string]bool{}
-	res := collectExtensions(path, extensions, seen)
-	fmt.Printf("Extensions: %v\n", *res)
-
-	// content, err := getFolderContent(path)
-	// if err != nil {
-	// log.Fatalf("Error raised: %s\n", err)
-	// }
-	// fmt.Printf("Content: %v\n", content)
-	// trackList := buildTrackList(path)
-
-	// pl := &PlayList{Xmlns: Xmlns, XmlnsVlc: XmlnsVlc, Version: "1", Title: "Test playlist", Tl: *trackList}
-	// writePlayList(pl)
+	content, err := getFolderContent(path)
+	if err != nil {
+		log.Fatalf("Error during getting files: %s\n", err)
+	}
+    for _, item := range content {
+        fmt.Printf("%d -- %s -- %f\n", item.Id, item.Name, item.Duration)
+    }
 }

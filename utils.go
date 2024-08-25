@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
 	"encoding/xml"
 	"os"
 	"path/filepath"
@@ -39,7 +40,6 @@ func getFolderContent(p string) ([]MediaItem, error) {
 		extension := filepath.Ext(file.Name())
         // could have a condition check for item being a file..
 		if isMediaFile(extension) {
-			fmt.Println(i, file.Name())
 			duration, err := getDuration(p + "/" + file.Name())
 			if err != nil {
 				return nil, err
@@ -52,9 +52,28 @@ func getFolderContent(p string) ([]MediaItem, error) {
 	}
 	return content, nil
 }
+func walkCollectExtensions(p string) (*[]string, error) {
+    extensions := &[]string{}
+    seen := &map[string]bool{}
+
+    err := filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
+        if err != nil {
+            return err
+        }
+        if !d.IsDir() {
+            extension := filepath.Ext(path)
+			if !(*seen)[extension] {
+                fmt.Printf("Seen first: %s -- %s, %v\n", extension, d.Name(), d.IsDir())
+				(*seen)[extension] = true
+				*extensions = append(*extensions, extension)
+			}
+        }
+        return nil
+    })
+    return extensions, err
+}
 
 func collectExtensions(p string, extensions *[]string, seen *map[string]bool) (*[]string, error) {
-	fmt.Println("Checking folder: ", p)
 	files, err := os.ReadDir(p)
 	if err != nil {
         return nil, err

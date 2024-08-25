@@ -8,8 +8,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/alfg/mp4"
+	"github.com/pkg/profile"
 )
 
 const (
@@ -59,7 +61,7 @@ func writePlayList(s any) error {
 }
 
 func getDuration(p string) (float64, error) {
-    log.Println("Checking ", p)
+	// log.Println("Checking ", p)
 	file, err := os.Open(p)
 	if err != nil {
 		return 0, err
@@ -71,52 +73,77 @@ func getDuration(p string) (float64, error) {
 		return 0, err
 	}
 	mp4, err := mp4.OpenFromReader(file, info.Size())
-    if err != nil {
-        return 0, err
-    }
-    if mp4.Moov == nil {
-        return 0, fmt.Errorf("Moov box not found.. is this mp4?")
-    }
-    rawDuration := float64(mp4.Moov.Mvhd.Duration)
-    timeScale := float64(mp4.Moov.Mvhd.Timescale)
+	if err != nil {
+		return 0, err
+	}
+	if mp4.Moov == nil {
+		return 0, fmt.Errorf("Moov box not found.. is this mp4?")
+	}
+	rawDuration := float64(mp4.Moov.Mvhd.Duration)
+	timeScale := float64(mp4.Moov.Mvhd.Timescale)
 
-    duration := rawDuration / timeScale
+	duration := rawDuration / timeScale
 	return duration, nil
 }
 
 func recGgetFolderContent(p string) ([]MediaItem, error) {
-    var items []MediaItem
-    idx := 0
-    err := filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
-        if err != nil {
-            return err
-        }
-        if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) {
+	var items []MediaItem
+	idx := 0
+	err := filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) {
 			duration, err := getDuration(path)
 			if err != nil {
 				return err
 			}
 			item := MediaItem{Id: idx, Name: d.Name(), Duration: duration}
 			items = append(items, item)
-            idx++
-        }
-        return nil
-    })
-    return items, err
+			idx++
+		}
+		return nil
+	})
+	return items, err
+}
+
+func TimeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
 }
 
 func main() {
+	extOFlag := flag.Bool("exto", false, "If specified, collects unique file extensions")
+	extNFlag := flag.Bool("extn", false, "If specified, collects unique file extensions")
+	profilingFlag := flag.Bool("profiling", false, "Specify for profiling")
+	flag.Parse()
+
 	path, err := getPath()
 	if err != nil {
 		log.Fatalf("Error raised: %s\n", err)
 	}
 	log.Printf("Path to be used: %s\n", path)
 
-	extFlag := flag.Bool("ext", false, "If specified, collects unique file extensions")
-	flag.Parse()
+	if *extOFlag {
+		fmt.Println("calling original")
+		if *profilingFlag {
+			defer profile.Start(profile.MemProfile, profile.ProfilePath("profiling/original")).Stop()
+			defer TimeTrack(time.Now(), "main")
+		}
 
-	if *extFlag {
 		extensions, err := getExtensions(path)
+		if err != nil {
+			log.Fatalf("Error during extension collection: %s\n", err)
+		}
+		fmt.Printf("Extensions: %v\n", *extensions)
+	}
+	if *extNFlag {
+		fmt.Println("calling refactored")
+		if *profilingFlag {
+			defer profile.Start(profile.MemProfile, profile.ProfilePath("profiling/refactored")).Stop()
+			defer TimeTrack(time.Now(), "main")
+		}
+		extensions, err := walkCollectExtensions(path)
 		if err != nil {
 			log.Fatalf("Error during extension collection: %s\n", err)
 		}
@@ -124,11 +151,12 @@ func main() {
 	}
 
 	content, err := recGgetFolderContent(path)
+	// content, err := getFolderContent(path)
 	if err != nil {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}
-    // fmt.Printf("len content: %d\n", len(content))
-    for _, item := range content {
-        fmt.Printf("Id: %d -- Name: %s -- %f sec\n", item.Id, item.Name, item.Duration)
-    }
+	fmt.Printf("len content: %d\n", len(content))
+	for _, item := range content {
+		fmt.Printf("Id: %d -- Name: %s -- %f sec\n", item.Id, item.Name, item.Duration)
+	}
 }

@@ -70,9 +70,12 @@ func collectMediaContent(p string) ([]MediaItem, error) {
 			if err != nil {
 				return err
 			}
-			item := MediaItem{Id: idx, Name: d.Name(), Duration: duration}
+			item := MediaItem{Id: idx, AbsPath: path, Name: d.Name(), Duration: duration}
 			items = append(items, item)
 			idx++
+            if idx % 500 == 0 {
+                fmt.Printf("Processed %d files\n", idx)
+            }
 		}
 		return nil
 	})

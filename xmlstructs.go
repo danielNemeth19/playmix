@@ -11,6 +11,8 @@ type Extension struct {
 type Track struct {
 	XMLName  xml.Name  `xml:"track"`
 	Location string    `xml:"location"`
+	Title    string    `xml:"title"`
+	Duration float64   `xml:"duration"`
 	Ext      Extension `xml:"extension"`
 }
 
@@ -29,6 +31,7 @@ type PlayList struct {
 }
 
 type MediaItem struct {
+	AbsPath  string
 	Name     string
 	Id       int
 	Duration float64

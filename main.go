@@ -17,7 +17,23 @@ const (
 
 var mediaExtensions = []string{".mp4", ".mkv", ".avi", ".flv", ".mpeg"}
 
-func buildTrackList(p string) *TrackList {
+func buildPlayList(content []MediaItem) *PlayList {
+    playList := &PlayList{Xmlns: Xmlns, XmlnsVlc: XmlnsVlc, Version: "1"}
+	trackList := &TrackList{}
+    tracks := []*Track{}
+
+    for i, media := range content {
+        fmt.Printf("index %d - name %s  -- duration: %f\n", i, media.Name, media.Duration)
+        ext := &Extension{Application: ExtensionApplication, Id: i}
+        track := &Track{Location: media.AbsPath, Title: media.Name, Duration: media.Duration, Ext: *ext}
+        tracks = append(tracks, track)
+    }
+    trackList.Tracks = tracks
+    playList.Tl = *trackList
+    return playList
+}
+
+func buildTrackListBak(p string) *TrackList {
 	files, err := os.ReadDir(p)
 	if err != nil {
 		log.Fatalf("Error raised: %s\n", err)
@@ -35,7 +51,7 @@ func buildTrackList(p string) *TrackList {
 }
 
 func writePlayList(s any) error {
-	outFile, err := os.Create("temp.xspf")
+    outFile, err := os.Create("temp_new.xspf")
 	if err != nil {
 		return fmt.Errorf("Error creating file: %w\n", err)
 	}
@@ -61,6 +77,7 @@ func TimeTrack(start time.Time, name string) {
 }
 
 func main() {
+    defer TimeTrack(time.Now(), "main")
 	extFlag := flag.Bool("ext", false, "If specified, collects unique file extensions")
 	flag.Parse()
 
@@ -83,7 +100,9 @@ func main() {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}
 	fmt.Printf("len content: %d\n", len(content))
-	for _, item := range content {
-		fmt.Printf("Id: %d -- Name: %s -- %f sec\n", item.Id, item.Name, item.Duration)
-	}
+    tl := buildPlayList(content)
+    err = writePlayList(tl)
+    if err != nil {
+        log.Fatalf("Error during writing playlist file: %s\n", err)
+    }
 }

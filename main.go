@@ -60,9 +60,10 @@ func main() {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}
 	fmt.Printf("len content: %d\n", len(content))
-    tl := buildPlayList(content)
-    err = writePlayList(tl)
-    if err != nil {
-        log.Fatalf("Error during writing playlist file: %s\n", err)
-    }
+    // tl := buildPlayList(content)
+    // err = writePlayList(tl)
+    // if err != nil {
+        // log.Fatalf("Error during writing playlist file: %s\n", err)
+    // }
+    test()
 }

@@ -36,3 +36,5 @@ type MediaItem struct {
 	Id       int
 	Duration float64
 }
+
+// let's sanitize track title by cutting the vlc record prefix

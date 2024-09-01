@@ -1,11 +1,10 @@
 package main
 
 import (
-	"encoding/xml"
+	"math"
 	"flag"
 	"fmt"
 	"log"
-	"os"
 	"time"
 )
 
@@ -23,52 +22,13 @@ func buildPlayList(content []MediaItem) *PlayList {
     tracks := []*Track{}
 
     for i, media := range content {
-        fmt.Printf("index %d - name %s  -- duration: %f\n", i, media.Name, media.Duration)
         ext := &Extension{Application: ExtensionApplication, Id: i}
-        track := &Track{Location: media.AbsPath, Title: media.Name, Duration: media.Duration, Ext: *ext}
+        track := &Track{Location: media.AbsPath, Title: media.Name, Duration: math.Round(media.Duration), Ext: *ext}
         tracks = append(tracks, track)
     }
     trackList.Tracks = tracks
     playList.Tl = *trackList
     return playList
-}
-
-func buildTrackListBak(p string) *TrackList {
-	files, err := os.ReadDir(p)
-	if err != nil {
-		log.Fatalf("Error raised: %s\n", err)
-	}
-	trackList := &TrackList{}
-	var tracks []*Track
-	for i, v := range files {
-		ext := &Extension{Application: ExtensionApplication, Id: i}
-		location := "file://" + p + v.Name()
-		track := &Track{Location: location, Ext: *ext}
-		tracks = append(tracks, track)
-	}
-	trackList.Tracks = tracks
-	return trackList
-}
-
-func writePlayList(s any) error {
-    outFile, err := os.Create("temp_new.xspf")
-	if err != nil {
-		return fmt.Errorf("Error creating file: %w\n", err)
-	}
-	defer outFile.Close()
-
-	_, err = outFile.WriteString(xml.Header)
-	if err != nil {
-		return fmt.Errorf("Error writing header: %w\n", err)
-	}
-
-	encoder := xml.NewEncoder(outFile)
-	encoder.Indent("", "\t")
-	err = encoder.Encode(&s)
-	if err != nil {
-		return fmt.Errorf("Error in encoding xml: %w\n", err)
-	}
-	return nil
 }
 
 func TimeTrack(start time.Time, name string) {

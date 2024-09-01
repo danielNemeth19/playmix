@@ -129,3 +129,24 @@ func getExtensions(p string) (*[]string, error) {
 	extensions, err := _collectExtensions(p, extensions, seen)
 	return extensions, err
 }
+
+func writePlayList(s any) error {
+    outFile, err := os.Create("temp_new.xspf")
+	if err != nil {
+		return fmt.Errorf("Error creating file: %w\n", err)
+	}
+	defer outFile.Close()
+
+	_, err = outFile.WriteString(xml.Header)
+	if err != nil {
+		return fmt.Errorf("Error writing header: %w\n", err)
+	}
+
+	encoder := xml.NewEncoder(outFile)
+	encoder.Indent("", "\t")
+	err = encoder.Encode(&s)
+	if err != nil {
+		return fmt.Errorf("Error in encoding xml: %w\n", err)
+	}
+	return nil
+}

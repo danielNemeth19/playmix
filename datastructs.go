@@ -2,6 +2,14 @@ package main
 
 import "encoding/xml"
 
+var mediaExtensions = []string{".mp4", ".mkv", ".avi", ".flv", ".mpeg"}
+
+const (
+	ExtensionApplication = "http://www.videolan.org/vlc/playlist/0"
+	Xmlns                = "http://xspf.org/ns/0/"
+	XmlnsVlc             = "http://www.videolan.org/vlc/playlist/ns/0/"
+)
+
 type Extension struct {
 	XMLName     xml.Name `xml:"extension"`
 	Application string   `xml:"application,attr"`

@@ -1,44 +1,33 @@
 package main
 
 import (
-	"math"
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"time"
 )
 
-const (
-	ExtensionApplication = "http://www.videolan.org/vlc/playlist/0"
-	Xmlns                = "http://xspf.org/ns/0/"
-	XmlnsVlc             = "http://www.videolan.org/vlc/playlist/ns/0/"
-)
-
-var mediaExtensions = []string{".mp4", ".mkv", ".avi", ".flv", ".mpeg"}
-
 func buildPlayList(content []MediaItem) *PlayList {
-    playList := &PlayList{Xmlns: Xmlns, XmlnsVlc: XmlnsVlc, Version: "1"}
+	playList := &PlayList{Xmlns: Xmlns, XmlnsVlc: XmlnsVlc, Version: "1"}
 	trackList := &TrackList{}
-    tracks := []*Track{}
+	tracks := []*Track{}
 
-    for i, media := range content {
-        ext := &Extension{Application: ExtensionApplication, Id: i}
-        track := &Track{Location: media.AbsPath, Title: media.Name, Duration: math.Round(media.Duration), Ext: *ext}
-        tracks = append(tracks, track)
-    }
-    trackList.Tracks = tracks
-    playList.Tl = *trackList
-    return playList
-}
-
-func TimeTrack(start time.Time, name string) {
-	elapsed := time.Since(start)
-	log.Printf("%s took %s", name, elapsed)
+	for i, media := range content {
+		ext := &Extension{Application: ExtensionApplication, Id: i}
+		track := &Track{Location: media.AbsPath, Title: media.Name, Duration: math.Round(media.Duration), Ext: *ext}
+		tracks = append(tracks, track)
+	}
+	trackList.Tracks = tracks
+	playList.Tl = *trackList
+	return playList
 }
 
 func main() {
-    defer TimeTrack(time.Now(), "main")
+	defer TimeTrack(time.Now(), "main")
 	extFlag := flag.Bool("ext", false, "If specified, collects unique file extensions")
+	minDuration := flag.Int("mind", 0, "If specified, collects files with duration more than specified")
+	maxDuration := flag.Int("maxd", 60*60, "If specified, collects files with duration less than specified")
 	flag.Parse()
 
 	path, err := getPath()
@@ -55,14 +44,14 @@ func main() {
 		fmt.Printf("Extensions: %v\n", extensions)
 	}
 
-	content, err := collectMediaContent(path)
+	content, err := collectMediaContent(path, *minDuration, *maxDuration)
 	if err != nil {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}
 	fmt.Printf("len content: %d\n", len(content))
-    tl := buildPlayList(content)
-    err = writePlayList(tl)
-    if err != nil {
-        log.Fatalf("Error during writing playlist file: %s\n", err)
-    }
+	tl := buildPlayList(content)
+	err = writePlayList(tl)
+	if err != nil {
+		log.Fatalf("Error during writing playlist file: %s\n", err)
+	}
 }

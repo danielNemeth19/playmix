@@ -4,8 +4,10 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/alfg/mp4"
 )
@@ -16,6 +18,11 @@ func getPath() (string, error) {
 		return "", fmt.Errorf("MEDIA_SOURCE environment variable not set")
 	}
 	return path, nil
+}
+
+func TimeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
 }
 
 func dumpConsole(s any) {
@@ -58,7 +65,7 @@ func getDuration(p string) (float64, error) {
 	return duration, nil
 }
 
-func collectMediaContent(p string) ([]MediaItem, error) {
+func collectMediaContent(p string, minDuration int, maxDuration int) ([]MediaItem, error) {
 	var items []MediaItem
 	idx := 0
 	err := filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
@@ -71,11 +78,13 @@ func collectMediaContent(p string) ([]MediaItem, error) {
 				return err
 			}
 			item := MediaItem{Id: idx, AbsPath: path, Name: d.Name(), Duration: duration}
-			items = append(items, item)
+			if item.Duration > float64(minDuration) && item.Duration < float64(maxDuration) {
+				items = append(items, item)
+			}
 			idx++
-            if idx % 500 == 0 {
-                fmt.Printf("Processed %d files\n", idx)
-            }
+			if idx%500 == 0 {
+				fmt.Printf("Processed %d files\n", idx)
+			}
 		}
 		return nil
 	})
@@ -131,7 +140,7 @@ func getExtensions(p string) (*[]string, error) {
 }
 
 func writePlayList(s any) error {
-    outFile, err := os.Create("temp_new.xspf")
+	outFile, err := os.Create("temp_new.xspf")
 	if err != nil {
 		return fmt.Errorf("Error creating file: %w\n", err)
 	}

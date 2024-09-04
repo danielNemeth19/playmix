@@ -8,26 +8,11 @@ import (
 	"time"
 )
 
-func buildPlayList(content []MediaItem) *PlayList {
-	playList := &PlayList{Xmlns: Xmlns, XmlnsVlc: XmlnsVlc, Version: "1"}
-	trackList := &TrackList{}
-	tracks := []*Track{}
-
-	for i, media := range content {
-		ext := &Extension{Application: ExtensionApplication, Id: i}
-		track := &Track{Location: media.AbsPath, Title: media.Name, Duration: math.Round(media.Duration), Ext: *ext}
-		tracks = append(tracks, track)
-	}
-	trackList.Tracks = tracks
-	playList.Tl = *trackList
-	return playList
-}
-
 func main() {
 	defer TimeTrack(time.Now(), "main")
 	extFlag := flag.Bool("ext", false, "If specified, collects unique file extensions")
-	minDuration := flag.Int("mind", 0, "If specified, collects files with duration more than specified")
-	maxDuration := flag.Int("maxd", 60*60, "If specified, collects files with duration less than specified")
+	minDuration := flag.Int("mindur", 0, "Minimum duration of media files to collect (in seconds)")
+	maxDuration := flag.Int("maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
 	flag.Parse()
 
 	path, err := getPath()

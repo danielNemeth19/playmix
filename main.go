@@ -4,9 +4,19 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"math"
 	"time"
 )
+
+func randomizePlaylist(playlist []MediaItem) {
+    rand.Shuffle(len(playlist), func(i, j int) {
+        playlist[i], playlist[j] = playlist[j], playlist[i]
+    })
+    for i, m := range playlist {
+        fmt.Printf("%d -- media id: %d -- media name: %s\n", i, m.Id, m.Name)
+    }
+}
 
 func main() {
 	defer TimeTrack(time.Now(), "main")
@@ -34,6 +44,7 @@ func main() {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}
 	fmt.Printf("len content: %d\n", len(content))
+    randomizePlaylist(content)
 	tl := buildPlayList(content)
 	err = writePlayList(tl)
 	if err != nil {

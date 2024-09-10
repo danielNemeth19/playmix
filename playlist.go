@@ -11,8 +11,41 @@ import (
 	"github.com/alfg/mp4"
 )
 
+type DurationBucket struct {
+	Dur0_5    int
+	Dur5_10   int
+	Dur10_30  int
+	Dur30_60  int
+	DurOver60 int
+}
+
+func (d *DurationBucket) allocate(duration float64) {
+	switch {
+	case duration < 5:
+		d.Dur0_5++
+	case duration <= 10:
+		d.Dur5_10++
+	case duration <= 30:
+		d.Dur10_30++
+	case duration <= 60:
+		d.Dur30_60++
+	default:
+		d.DurOver60++
+	}
+}
+
+func (d DurationBucket) summarize() {
+	fmt.Printf("Bucket <5 seconds: %d\n", d.Dur0_5)
+	fmt.Printf("Bucket 5-10 seconds: %d\n", d.Dur5_10)
+	fmt.Printf("Bucket 10-30 seconds: %d\n", d.Dur10_30)
+	fmt.Printf("Bucket 30-60 seconds: %d\n", d.Dur30_60)
+	fmt.Printf("Bucket 60< seconds: %d\n", d.DurOver60)
+}
+
 func collectMediaContent(p string, minDuration int, maxDuration int) ([]MediaItem, error) {
-	var items []MediaItem
+	var items []MediaItem 
+    var totalDuration float64
+	durationMap := &DurationBucket{Dur0_5: 0, Dur5_10: 0, Dur10_30: 0, Dur30_60: 0, DurOver60: 0}
 	idx := 0
 	err := filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -20,12 +53,14 @@ func collectMediaContent(p string, minDuration int, maxDuration int) ([]MediaIte
 		}
 		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) {
 			duration, err := getDuration(path)
+			durationMap.allocate(duration)
 			if err != nil {
 				return err
 			}
-			item := MediaItem{Id: idx, AbsPath: path, Name: d.Name(), Duration: duration}
-			if item.Duration > float64(minDuration) && item.Duration < float64(maxDuration) {
+			if duration > float64(minDuration) && duration < float64(maxDuration) {
+				item := MediaItem{Id: idx, AbsPath: path, Name: d.Name(), Duration: duration}
 				items = append(items, item)
+                totalDuration += duration
 			}
 			idx++
 			if idx%500 == 0 {
@@ -34,11 +69,12 @@ func collectMediaContent(p string, minDuration int, maxDuration int) ([]MediaIte
 		}
 		return nil
 	})
+	durationMap.summarize()
+    fmt.Printf("Total duration is: %f sec -- (%f) minutes\n", totalDuration, totalDuration / 60)
 	return items, err
 }
 
 func getDuration(p string) (float64, error) {
-	// log.Println("Checking ", p)
 	file, err := os.Open(p)
 	if err != nil {
 		return 0, err

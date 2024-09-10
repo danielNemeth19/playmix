@@ -13,9 +13,6 @@ func randomizePlaylist(playlist []MediaItem) {
     rand.Shuffle(len(playlist), func(i, j int) {
         playlist[i], playlist[j] = playlist[j], playlist[i]
     })
-    for i, m := range playlist {
-        fmt.Printf("%d -- media id: %d -- media name: %s\n", i, m.Id, m.Name)
-    }
 }
 
 func main() {
@@ -23,7 +20,10 @@ func main() {
 	extFlag := flag.Bool("ext", false, "If specified, collects unique file extensions")
 	minDuration := flag.Int("mindur", 0, "Minimum duration of media files to collect (in seconds)")
 	maxDuration := flag.Int("maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
+	folders := flag.String("folders", "", "Folders to consider")
 	flag.Parse()
+    
+    fmt.Printf("Folder needed: %s\n", *folders)
 
 	path, err := getPath()
 	if err != nil {

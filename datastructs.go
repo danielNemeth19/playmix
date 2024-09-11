@@ -37,12 +37,3 @@ type PlayList struct {
 	Title    string    `xml:"title"`
 	Tl       TrackList `xml:"trackList"`
 }
-
-type MediaItem struct {
-	AbsPath  string
-	Name     string
-	Id       int
-	Duration float64
-}
-
-// let's sanitize track title by cutting the vlc record prefix

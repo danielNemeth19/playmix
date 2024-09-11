@@ -7,9 +7,25 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/alfg/mp4"
 )
+
+// let's sanitize track title by cutting the vlc record prefix
+type MediaItem struct {
+	AbsPath  string
+	Dir      string
+	Name     string
+	Id       int
+	Duration float64
+}
+
+func (m MediaItem) getDir(root string) string {
+    fmt.Println(m.AbsPath)
+    folderPath := filepath.Dir(m.AbsPath)
+    return strings.Split(folderPath, root)[1]
+}
 
 type DurationBucket struct {
 	Dur0_5    int
@@ -34,7 +50,7 @@ func (d *DurationBucket) allocate(duration float64) {
 	}
 }
 
-func (d DurationBucket) summarize() {
+func (d *DurationBucket) summarize() {
 	fmt.Printf("Bucket <5 seconds: %d\n", d.Dur0_5)
 	fmt.Printf("Bucket 5-10 seconds: %d\n", d.Dur5_10)
 	fmt.Printf("Bucket 10-30 seconds: %d\n", d.Dur10_30)
@@ -43,9 +59,9 @@ func (d DurationBucket) summarize() {
 }
 
 func collectMediaContent(p string, minDuration int, maxDuration int) ([]MediaItem, error) {
-	var items []MediaItem 
-    var totalDuration float64
-	durationMap := &DurationBucket{Dur0_5: 0, Dur5_10: 0, Dur10_30: 0, Dur30_60: 0, DurOver60: 0}
+	var items []MediaItem
+	var totalDuration float64
+    durationMap := DurationBucket{}
 	idx := 0
 	err := filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -59,8 +75,9 @@ func collectMediaContent(p string, minDuration int, maxDuration int) ([]MediaIte
 			}
 			if duration > float64(minDuration) && duration < float64(maxDuration) {
 				item := MediaItem{Id: idx, AbsPath: path, Name: d.Name(), Duration: duration}
+                item.Dir = item.getDir(p)
 				items = append(items, item)
-                totalDuration += duration
+				totalDuration += duration
 			}
 			idx++
 			if idx%500 == 0 {
@@ -70,11 +87,11 @@ func collectMediaContent(p string, minDuration int, maxDuration int) ([]MediaIte
 		return nil
 	})
 	durationMap.summarize()
-    fmt.Printf("Total duration is: %f sec -- (%f) minutes\n", totalDuration, totalDuration / 60)
+	fmt.Printf("Total duration is: %f sec -- (%f) minutes\n", totalDuration, totalDuration/60)
 	return items, err
 }
 
-func getDuration(p string) (float64, error) {
+func getDuration(p string) (duration float64, err error) {
 	file, err := os.Open(p)
 	if err != nil {
 		return 0, err
@@ -95,7 +112,7 @@ func getDuration(p string) (float64, error) {
 	rawDuration := float64(mp4.Moov.Mvhd.Duration)
 	timeScale := float64(mp4.Moov.Mvhd.Timescale)
 
-	duration := rawDuration / timeScale
+	duration = rawDuration / timeScale
 	return duration, nil
 }
 

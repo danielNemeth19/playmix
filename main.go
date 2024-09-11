@@ -13,6 +13,9 @@ func randomizePlaylist(playlist []MediaItem) {
     rand.Shuffle(len(playlist), func(i, j int) {
         playlist[i], playlist[j] = playlist[j], playlist[i]
     })
+    for i, m := range playlist {
+        fmt.Printf("%d -- media id: %d -- media name: %s -- dir: %s\n", i, m.Id, m.Name, m.Dir)
+    }
 }
 
 func main() {

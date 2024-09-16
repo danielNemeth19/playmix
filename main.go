@@ -4,18 +4,18 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math/rand"
 	"math"
+	"math/rand"
 	"time"
 )
 
 func randomizePlaylist(playlist []MediaItem) {
-    rand.Shuffle(len(playlist), func(i, j int) {
-        playlist[i], playlist[j] = playlist[j], playlist[i]
-    })
-    for i, m := range playlist {
-        fmt.Printf("%d -- media id: %d -- media name: %s -- dir: %s\n", i, m.Id, m.Name, m.Dir)
-    }
+	rand.Shuffle(len(playlist), func(i, j int) {
+		playlist[i], playlist[j] = playlist[j], playlist[i]
+	})
+	for i, m := range playlist {
+		fmt.Printf("%d -- media id: %d -- media name: %s -- dir: %s\n", i, m.Id, m.Name, m.Dir)
+	}
 }
 
 func main() {
@@ -25,8 +25,8 @@ func main() {
 	maxDuration := flag.Int("maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
 	folders := flag.String("folders", "", "Folders to consider")
 	flag.Parse()
-    
-    fmt.Printf("Folder needed: %s\n", *folders)
+
+	fmt.Printf("Folder needed: %s\n", *folders)
 
 	path, err := getPath()
 	if err != nil {
@@ -47,7 +47,7 @@ func main() {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}
 	fmt.Printf("len content: %d\n", len(content))
-    randomizePlaylist(content)
+	randomizePlaylist(content)
 	tl := buildPlayList(content)
 	err = writePlayList(tl)
 	if err != nil {

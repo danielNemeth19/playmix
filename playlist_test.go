@@ -28,24 +28,38 @@ func TestPlaylist_allocate(t *testing.T) {
 	}
 }
 
-func TestPlaylist_getDir_fail(t *testing.T) {
-    dir := "/Genre/Artist/Album"
-    item := MediaItem{
-        AbsPath:"/home/user/Music/Genre/Artist/Album/Track01.mp4", 
-    }
-    got := item.getDir("/home/user/Music/")
-    if got != dir {
-        t.Errorf("Got %s, expected %s\n", got, dir)
-    }
+func TestPlaylistGetDirRootHasSeparator(t *testing.T) {
+	root := "/home/user/Music/"
+	expected := "Genre/Artist/Album"
+	item := MediaItem{
+		AbsPath: "/home/user/Music/Genre/Artist/Album/Track01.mp4",
+	}
+	got := item.getDir(root)
+	if got != expected {
+		t.Errorf("Got %s, expected %s\n", got, expected)
+	}
 }
 
-func TestPlaylist_getDir_ok(t *testing.T) {
-    dir := "/Genre/Artist/Album"
-    item := MediaItem{
-        AbsPath:"/home/user/Music/Genre/Artist/Album/Track01.mp4", 
-    }
-    got := item.getDir("/home/user/Music")
-    if got != dir {
-        t.Errorf("Got %s, expected %s\n", got, dir)
-    }
+func TestPlaylistGetDirRootNoSeparator(t *testing.T) {
+	root := "/home/user/Music"
+	expected := "Genre/Artist/Album"
+	item := MediaItem{
+		AbsPath: "/home/user/Music/Genre/Artist/Album/Track01.mp4",
+	}
+	got := item.getDir(root)
+	if got != expected {
+		t.Errorf("Got %s, expected %s\n", got, expected)
+	}
+}
+
+func TestPlaylistGetDirRoot(t *testing.T) {
+	root := "/home/user/Music/Genre/Artist/Album"
+	expected := "Album"
+	item := MediaItem{
+		AbsPath: "/home/user/Music/Genre/Artist/Album/Track01.mp4",
+	}
+	got := item.getDir(root)
+	if got != expected {
+		t.Errorf("Got %s, expected %s\n", got, expected)
+	}
 }

@@ -22,9 +22,15 @@ type MediaItem struct {
 }
 
 func (m MediaItem) getDir(root string) string {
-    fmt.Println(m.AbsPath)
-    folderPath := filepath.Dir(m.AbsPath)
-    return strings.Split(folderPath, root)[1]
+	folderPath := filepath.Dir(m.AbsPath)
+	if root == folderPath {
+		return filepath.Base(folderPath)
+	}
+	if !strings.HasSuffix(root, string(os.PathSeparator)) {
+		root += string(os.PathSeparator)
+	}
+
+	return strings.Split(folderPath, root)[1]
 }
 
 type DurationBucket struct {
@@ -61,7 +67,7 @@ func (d *DurationBucket) summarize() {
 func collectMediaContent(p string, minDuration int, maxDuration int) ([]MediaItem, error) {
 	var items []MediaItem
 	var totalDuration float64
-    durationMap := DurationBucket{}
+	durationMap := DurationBucket{}
 	idx := 0
 	err := filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -75,7 +81,7 @@ func collectMediaContent(p string, minDuration int, maxDuration int) ([]MediaIte
 			}
 			if duration > float64(minDuration) && duration < float64(maxDuration) {
 				item := MediaItem{Id: idx, AbsPath: path, Name: d.Name(), Duration: duration}
-                item.Dir = item.getDir(p)
+				item.Dir = item.getDir(p)
 				items = append(items, item)
 				totalDuration += duration
 			}

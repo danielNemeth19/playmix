@@ -9,12 +9,17 @@ import (
 	"time"
 )
 
-func randomizePlaylist(playlist []MediaItem) {
-	rand.Shuffle(len(playlist), func(i, j int) {
-		playlist[i], playlist[j] = playlist[j], playlist[i]
-	})
-	for i, m := range playlist {
-		fmt.Printf("%d -- media id: %d -- media name: %s -- dir: %s\n", i, m.Id, m.Name, m.Dir)
+func randomizePlaylist(playlist []MediaItem, stabilizer int) {
+	if stabilizer > len(playlist) {
+		rand.Shuffle(len(playlist), func(i, j int) {
+			playlist[i], playlist[j] = playlist[j], playlist[i]
+		})
+	} else {
+		rand.Shuffle(len(playlist), func(i, j int) {
+			if i%stabilizer != 0 {
+				playlist[i], playlist[j] = playlist[j], playlist[i]
+			}
+		})
 	}
 }
 
@@ -23,6 +28,7 @@ func main() {
 	extFlag := flag.Bool("ext", false, "If specified, collects unique file extensions")
 	minDuration := flag.Int("mindur", 0, "Minimum duration of media files to collect (in seconds)")
 	maxDuration := flag.Int("maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
+	stabilizer := flag.Int("stabilizer", math.MaxInt32, "Specifies the interval at which elements are fixed in place during shuffling")
 	folders := flag.String("folders", "", "Folders to consider")
 	flag.Parse()
 
@@ -46,8 +52,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}
-	fmt.Printf("len content: %d\n", len(content))
-	randomizePlaylist(content)
+	fmt.Printf("before len content: %d\n", len(content))
+	randomizePlaylist(content, *stabilizer)
+	fmt.Printf("after len content: %d\n", len(content))
 	tl := buildPlayList(content)
 	err = writePlayList(tl)
 	if err != nil {

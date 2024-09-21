@@ -25,10 +25,12 @@ func randomizePlaylist(playlist []MediaItem, stabilizer int) {
 
 func main() {
 	defer TimeTrack(time.Now(), "main")
+	// TODO: filename needs to be generated, or provided
 	extFlag := flag.Bool("ext", false, "If specified, collects unique file extensions")
 	minDuration := flag.Int("mindur", 0, "Minimum duration of media files to collect (in seconds)")
 	maxDuration := flag.Int("maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
-	stabilizer := flag.Int("stabilizer", math.MaxInt32, "Specifies the interval at which elements are fixed in place during shuffling")
+	stabilizer := flag.Int("stabilizer", math.MaxInt32, "Specifies the interval at which elements are fixed in place during shuffling (they still could be swapped)")
+	ratio := flag.Int("ratio", 100, "Specifies the ratio of files to be included in the playlist (e.g. 80 means roughly 80%)")
 	folders := flag.String("folders", "", "Folders to consider")
 	flag.Parse()
 
@@ -48,16 +50,15 @@ func main() {
 		fmt.Printf("Extensions: %v\n", extensions)
 	}
 
-	content, err := collectMediaContent(path, *minDuration, *maxDuration)
+	content, summary, err := collectMediaContent(path, *minDuration, *maxDuration, *ratio)
 	if err != nil {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}
-	fmt.Printf("before len content: %d\n", len(content))
 	randomizePlaylist(content, *stabilizer)
-	fmt.Printf("after len content: %d\n", len(content))
 	tl := buildPlayList(content)
 	err = writePlayList(tl)
 	if err != nil {
 		log.Fatalf("Error during writing playlist file: %s\n", err)
 	}
+	summary.getData()
 }

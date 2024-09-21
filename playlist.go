@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"math"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,7 +13,7 @@ import (
 	"github.com/alfg/mp4"
 )
 
-// let's sanitize track title by cutting the vlc record prefix
+// TODO: let's sanitize track title by cutting the vlc record prefix
 type MediaItem struct {
 	AbsPath  string
 	Dir      string
@@ -33,12 +34,34 @@ func (m MediaItem) getDir(root string) string {
 	return strings.Split(folderPath, root)[1]
 }
 
+type Summarizer struct {
+	dBucket       DurationBucket
+	ratio         int
+	totalDuration float64
+	totalScanned  int
+	totalSelected int
+}
+
+func (s Summarizer) getRealRatio() float64 {
+	return float64(s.totalSelected) / float64(s.totalScanned) * 100
+}
+
+func (s Summarizer) getData() {
+	fmt.Printf("Total scanned: %d\n", s.totalScanned)
+	fmt.Printf("Duration distribution:\n")
+	s.dBucket.summarize()
+	fmt.Printf("Total duration is: %f sec -- (%f) minutes\n", s.totalDuration, s.totalDuration/60)
+	fmt.Printf("Total selected: %d -- required ratio: %d -- got: %.2f%%\n", s.totalSelected, s.ratio, s.getRealRatio())
+}
+
 type DurationBucket struct {
-	Dur0_5    int
-	Dur5_10   int
-	Dur10_30  int
-	Dur30_60  int
-	DurOver60 int
+	Dur0_5     int
+	Dur5_10    int
+	Dur10_30   int
+	Dur30_60   int
+	Dur60_180  int
+	Dur180_240 int
+	DurOver240 int
 }
 
 func (d *DurationBucket) allocate(duration float64) {
@@ -51,8 +74,12 @@ func (d *DurationBucket) allocate(duration float64) {
 		d.Dur10_30++
 	case duration <= 60:
 		d.Dur30_60++
+	case duration <= 180:
+		d.Dur60_180++
+	case duration <= 240:
+		d.Dur180_240++
 	default:
-		d.DurOver60++
+		d.DurOver240++
 	}
 }
 
@@ -61,40 +88,56 @@ func (d *DurationBucket) summarize() {
 	fmt.Printf("Bucket 5-10 seconds: %d\n", d.Dur5_10)
 	fmt.Printf("Bucket 10-30 seconds: %d\n", d.Dur10_30)
 	fmt.Printf("Bucket 30-60 seconds: %d\n", d.Dur30_60)
-	fmt.Printf("Bucket 60< seconds: %d\n", d.DurOver60)
+	fmt.Printf("Bucket 60-180 seconds: %d\n", d.Dur60_180)
+	fmt.Printf("Bucket 180-240 seconds: %d\n", d.Dur180_240)
+	fmt.Printf("Bucket 240< seconds: %d\n", d.DurOver240)
 }
 
-func collectMediaContent(p string, minDuration int, maxDuration int) ([]MediaItem, error) {
+func selector(ratio int) bool {
+	n := rand.Intn(100)
+	if n < ratio {
+		return true
+	}
+	return false
+}
+
+func collectMediaContent(p string, minDuration int, maxDuration int, ratio int) ([]MediaItem, Summarizer, error) {
 	var items []MediaItem
-	var totalDuration float64
-	durationMap := DurationBucket{}
+	summary := Summarizer{
+		ratio:         ratio,
+		totalScanned:  0,
+		totalSelected: 0,
+		totalDuration: 0,
+		dBucket:       DurationBucket{},
+	}
 	idx := 0
 	err := filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) {
-			duration, err := getDuration(path)
-			durationMap.allocate(duration)
-			if err != nil {
-				return err
+			if selector(ratio) {
+				duration, err := getDuration(path)
+				summary.dBucket.allocate(duration)
+				if err != nil {
+					return err
+				}
+				if duration > float64(minDuration) && duration < float64(maxDuration) {
+					item := MediaItem{Id: idx, AbsPath: path, Name: d.Name(), Duration: duration}
+					item.Dir = item.getDir(p)
+					items = append(items, item)
+					summary.totalDuration += duration
+					summary.totalSelected++
+				}
 			}
-			if duration > float64(minDuration) && duration < float64(maxDuration) {
-				item := MediaItem{Id: idx, AbsPath: path, Name: d.Name(), Duration: duration}
-				item.Dir = item.getDir(p)
-				items = append(items, item)
-				totalDuration += duration
-			}
-			idx++
-			if idx%500 == 0 {
-				fmt.Printf("Processed %d files\n", idx)
+			summary.totalScanned++
+			if summary.totalScanned%500 == 0 {
+				fmt.Printf("Processed %d files\n", summary.totalScanned)
 			}
 		}
 		return nil
 	})
-	durationMap.summarize()
-	fmt.Printf("Total duration is: %f sec -- (%f) minutes\n", totalDuration, totalDuration/60)
-	return items, err
+	return items, summary, err
 }
 
 func getDuration(p string) (duration float64, err error) {

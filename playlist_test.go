@@ -6,7 +6,7 @@ import (
 
 func TestPlaylist_allocate(t *testing.T) {
 	durB := DurationBucket{}
-	durations := []float64{3.46, 7.86, 5.67, 8.52, 15, 20, 36.12, 62.45, 70}
+	durations := []float64{3.46, 7.86, 8.52, 15, 20, 36.12, 62.45, 70, 190, 241}
 	for _, duration := range durations {
 		durB.allocate(duration)
 	}
@@ -16,10 +16,12 @@ func TestPlaylist_allocate(t *testing.T) {
 		expected int
 	}{
 		{"Dur0_5", durB.Dur0_5, 1},
-		{"Dur5_10", durB.Dur5_10, 3},
+		{"Dur5_10", durB.Dur5_10, 2},
 		{"Dur10_30", durB.Dur10_30, 2},
 		{"Dur30_60", durB.Dur30_60, 1},
-		{"DurOver60", durB.DurOver60, 2},
+		{"Dur60_180", durB.Dur60_180, 2},
+		{"Dur180_240", durB.Dur180_240, 1},
+		{"DurOver240", durB.DurOver240, 1},
 	}
 	for _, tt := range tests {
 		if tt.got != tt.expected {

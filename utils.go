@@ -57,30 +57,3 @@ func collectExtensions(p string) ([]string, error) {
 	})
 	return extensions, err
 }
-
-func _collectExtensions(p string, extensions *[]string, seen *map[string]bool) (*[]string, error) {
-	files, err := os.ReadDir(p)
-	if err != nil {
-		return nil, err
-	}
-	for _, obj := range files {
-		if obj.IsDir() {
-			extensions, _ = _collectExtensions(p+"/"+obj.Name(), extensions, seen)
-		} else {
-			extension := filepath.Ext(obj.Name())
-			if !(*seen)[extension] {
-				fmt.Printf("Seen first: %s -- %s, %v\n", extension, obj.Name(), obj.IsDir())
-				(*seen)[extension] = true
-				*extensions = append(*extensions, extension)
-			}
-		}
-	}
-	return extensions, nil
-}
-
-func getExtensions(p string) (*[]string, error) {
-	extensions := &[]string{}
-	seen := &map[string]bool{}
-	extensions, err := _collectExtensions(p, extensions, seen)
-	return extensions, err
-}

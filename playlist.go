@@ -101,10 +101,10 @@ func selector(ratio int) bool {
 	return false
 }
 
-func collectMediaContent(p string, minDuration int, maxDuration int, ratio int) ([]MediaItem, Summarizer, error) {
+func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, error) {
 	var items []MediaItem
 	summary := Summarizer{
-		ratio:         ratio,
+		ratio:         params.ratio,
 		totalScanned:  0,
 		totalSelected: 0,
 		totalDuration: 0,
@@ -115,14 +115,17 @@ func collectMediaContent(p string, minDuration int, maxDuration int, ratio int) 
 		if err != nil {
 			return err
 		}
+		if d.IsDir() && d.Name() == params.skipF[0] {
+			return filepath.SkipDir
+		}
 		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) {
-			if selector(ratio) {
+			if selector(params.ratio) {
 				duration, err := getDuration(path)
 				summary.dBucket.allocate(duration)
 				if err != nil {
 					return err
 				}
-				if duration > float64(minDuration) && duration < float64(maxDuration) {
+				if duration > float64(params.minDuration) && duration < float64(params.maxDuration) {
 					item := MediaItem{Id: idx, AbsPath: path, Name: d.Name(), Duration: duration}
 					item.Dir = item.getDir(p)
 					items = append(items, item)

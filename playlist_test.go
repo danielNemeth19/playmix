@@ -2,6 +2,7 @@ package main
 
 import (
 	"testing"
+    "playmix/internal/assert"
 )
 
 func TestPlaylist_allocate(t *testing.T) {
@@ -25,9 +26,17 @@ func TestPlaylist_allocate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		if tt.got != tt.expected {
-			t.Errorf("Failed %s: got %d, expected %d\n", tt.name, tt.got, tt.expected)
+            assert.Equal(t, tt.name, tt.got, tt.expected)
 		}
 	}
+}
+
+func TestPlaylistToSkip(t *testing.T) {
+    skipF := []string{"c", "e"}
+    verdict := toSkip("a", skipF)
+    assert.Equal(t, "toSkip to be false", verdict, false)
+    verdict = toSkip("c", skipF)
+    assert.Equal(t, "toSkip to be true", verdict, true)
 }
 
 func TestPlaylistGetDirRootHasSeparator(t *testing.T) {
@@ -38,7 +47,7 @@ func TestPlaylistGetDirRootHasSeparator(t *testing.T) {
 	}
 	got := item.getDir(root)
 	if got != expected {
-		t.Errorf("Got %s, expected %s\n", got, expected)
+		assert.Equal(t, "root has separator", got, expected)
 	}
 }
 
@@ -50,7 +59,7 @@ func TestPlaylistGetDirRootNoSeparator(t *testing.T) {
 	}
 	got := item.getDir(root)
 	if got != expected {
-		t.Errorf("Got %s, expected %s\n", got, expected)
+		assert.Equal(t, "root no separator", got, expected)
 	}
 }
 
@@ -62,6 +71,6 @@ func TestPlaylistGetDirRoot(t *testing.T) {
 	}
 	got := item.getDir(root)
 	if got != expected {
-		t.Errorf("Got %s, expected %s\n", got, expected)
+		assert.Equal(t, "File in root", got, expected)
 	}
 }

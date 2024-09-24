@@ -22,6 +22,7 @@ type MediaItem struct {
 	Duration float64
 }
 
+// TODO: This dirName could be used writing a proper title
 func (m MediaItem) getDir(root string) string {
 	folderPath := filepath.Dir(m.AbsPath)
 	if root == folderPath {
@@ -101,6 +102,15 @@ func selector(ratio int) bool {
 	return false
 }
 
+func toSkip(name string, skip []string) bool {
+	for _, f := range skip {
+		if f == name {
+			return true
+		}
+	}
+	return false
+}
+
 func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, error) {
 	var items []MediaItem
 	summary := Summarizer{
@@ -115,7 +125,7 @@ func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, erro
 		if err != nil {
 			return err
 		}
-		if d.IsDir() && d.Name() == params.skipF[0] {
+		if d.IsDir() && toSkip(d.Name(), params.skipF) {
 			return filepath.SkipDir
 		}
 		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) {

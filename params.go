@@ -16,6 +16,13 @@ type Params struct {
 	skipF       []string
 }
 
+func parse(s string) []string {
+    if s == "" {
+        return []string{}
+    } 
+    return strings.Split(s, ",")
+}
+
 func getParams() *Params {
 	p := &Params{}
 	flag.BoolVar(&p.extFlag, "ext", false, "If specified, collects unique file extensions")
@@ -26,7 +33,7 @@ func getParams() *Params {
 	includeF := flag.String("include", "", "Folders to consider")
 	skipF := flag.String("skip", "", "Folders to skip")
 	flag.Parse()
-	p.includeF = strings.Split(*includeF, ",")
-	p.skipF = strings.Split(*skipF, ",")
+	p.includeF = parse(*includeF)
+	p.skipF = parse(*skipF)
 	return p
 }

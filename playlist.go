@@ -111,6 +111,21 @@ func toSkip(name string, skip []string) bool {
 	return false
 }
 
+func isIncluded(root string, path string, include []string) bool {
+    if len(include) == 0 {
+        return true
+    }
+    parts := strings.Split(path, root)
+    for _, folder := range strings.Split(parts[1], string(os.PathSeparator)) {
+        for _, f := range include {
+            if folder == f {
+                return true
+            }
+        }
+    }
+    return false
+}
+
 func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, error) {
 	var items []MediaItem
 	summary := Summarizer{
@@ -128,7 +143,7 @@ func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, erro
 		if d.IsDir() && toSkip(d.Name(), params.skipF) {
 			return filepath.SkipDir
 		}
-		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) {
+		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(p, path, params.includeF) {
 			if selector(params.ratio) {
 				duration, err := getDuration(path)
 				summary.dBucket.allocate(duration)

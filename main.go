@@ -25,20 +25,20 @@ func main() {
 	defer TimeTrack(time.Now(), "main")
 	// TODO: filename needs to be generated, or provided
 	params := getParams()
-	path, err := getPath()
+	root, err := getPath()
 	if err != nil {
 		log.Fatalf("Error raised: %s\n", err)
 	}
-	log.Printf("Path to be used: %s\n", path)
+	log.Printf("Path to be used: %s\n", root)
 
 	if params.extFlag {
-		extensions, err := collectExtensions(path)
+		extensions, err := collectExtensions(root)
 		if err != nil {
 			log.Fatalf("Error during extension collection: %s\n", err)
 		}
 		fmt.Printf("Extensions: %v\n", extensions)
 	}
-	content, summary, err := collectMediaContent(path, *params)
+	content, summary, err := collectMediaContent(root, *params)
 	if err != nil {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}

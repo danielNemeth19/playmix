@@ -17,10 +17,10 @@ type Params struct {
 }
 
 func parse(s string) []string {
-    if s == "" {
-        return []string{}
-    } 
-    return strings.Split(s, ",")
+	if s == "" {
+		return []string{}
+	}
+	return strings.Split(s, ",")
 }
 
 func getParams() *Params {

@@ -112,18 +112,18 @@ func toSkip(name string, skip []string) bool {
 }
 
 func isIncluded(root string, path string, include []string) bool {
-    if len(include) == 0 {
-        return true
-    }
-    parts := strings.Split(path, root)
-    for _, folder := range strings.Split(parts[1], string(os.PathSeparator)) {
-        for _, f := range include {
-            if folder == f {
-                return true
-            }
-        }
-    }
-    return false
+	if len(include) == 0 {
+		return true
+	}
+	parts := strings.Split(path, root)
+	for _, folder := range strings.Split(parts[1], string(os.PathSeparator)) {
+		for _, f := range include {
+			if folder == f {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, error) {

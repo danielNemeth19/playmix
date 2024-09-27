@@ -1,8 +1,8 @@
 package main
 
 import (
+	"playmix/internal/assert"
 	"testing"
-    "playmix/internal/assert"
 )
 
 func TestPlaylist_allocate(t *testing.T) {
@@ -26,17 +26,17 @@ func TestPlaylist_allocate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		if tt.got != tt.expected {
-            assert.Equal(t, tt.name, tt.got, tt.expected)
+			assert.Equal(t, tt.name, tt.got, tt.expected)
 		}
 	}
 }
 
 func TestPlaylistToSkip(t *testing.T) {
-    skipF := []string{"c", "e"}
-    verdict := toSkip("a", skipF)
-    assert.Equal(t, "toSkip to be false", verdict, false)
-    verdict = toSkip("c", skipF)
-    assert.Equal(t, "toSkip to be true", verdict, true)
+	skipF := []string{"c", "e"}
+	verdict := toSkip("a", skipF)
+	assert.Equal(t, "toSkip to be false", verdict, false)
+	verdict = toSkip("c", skipF)
+	assert.Equal(t, "toSkip to be true", verdict, true)
 }
 
 func TestPlaylistGetDirRootHasSeparator(t *testing.T) {

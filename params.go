@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"math"
 	"strings"
 )
@@ -16,6 +17,13 @@ type Params struct {
 	skipF       []string
 }
 
+func validateParams(includeF, skipF string) error {
+	if includeF != "" && skipF != "" {
+		return fmt.Errorf("Include and skip folders are mutually exclusive")
+	}
+	return nil
+}
+
 func parse(s string) []string {
 	if s == "" {
 		return []string{}
@@ -23,7 +31,7 @@ func parse(s string) []string {
 	return strings.Split(s, ",")
 }
 
-func getParams() *Params {
+func getParams() (*Params, error) {
 	p := &Params{}
 	flag.BoolVar(&p.extFlag, "ext", false, "If specified, collects unique file extensions")
 	flag.IntVar(&p.minDuration, "mindur", 0, "Minimum duration of media files to collect (in seconds)")
@@ -33,7 +41,11 @@ func getParams() *Params {
 	includeF := flag.String("include", "", "Folders to consider")
 	skipF := flag.String("skip", "", "Folders to skip")
 	flag.Parse()
+	err := validateParams(*includeF, *skipF)
+	if err != nil {
+		return nil, err
+	}
 	p.includeF = parse(*includeF)
 	p.skipF = parse(*skipF)
-	return p
+	return p, nil
 }

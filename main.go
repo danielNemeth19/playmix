@@ -24,7 +24,10 @@ func randomizePlaylist(playlist []MediaItem, stabilizer int) {
 func main() {
 	defer TimeTrack(time.Now(), "main")
 	// TODO: filename needs to be generated, or provided
-	params := getParams()
+	params, err := getParams()
+	if err != nil {
+		log.Fatalf("Param validation error: %s\n", err)
+	}
 	root, err := getPath()
 	if err != nil {
 		log.Fatalf("Error raised: %s\n", err)

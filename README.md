@@ -68,3 +68,9 @@ Example options:
 * start-time (needs value)
 * stop-time (needs value)
 * no-audio
+
+## TODO:
+* supporting ratios per folder
+* supporting timestamp filter for files
+* supporting regex patterns for file selection
+* alternating files from folders (i.e. some kind of controlled randomization)

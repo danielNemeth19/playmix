@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/alfg/mp4"
 )
@@ -144,6 +146,10 @@ func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, erro
 			return filepath.SkipDir
 		}
 		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(p, path, params.includeF) {
+            file, _ := d.Info()
+            ctime := file.Sys().(*syscall.Stat_t).Ctim
+            cTime := time.Unix(ctime.Sec, ctime.Nsec)
+            fmt.Printf("Change time: %v\n", cTime)
 			if selector(params.ratio) {
 				duration, err := getDuration(path)
 				summary.dBucket.allocate(duration)

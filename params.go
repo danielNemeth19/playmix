@@ -16,39 +16,45 @@ type Params struct {
 	ratio       int
 	includeF    []string
 	skipF       []string
-	fdate       string
-	tdate       string
+	fdate       time.Time
+	tdate       time.Time
 }
 
-func validateParams(includeF, skipF string, ratio int) error {
-	if includeF != "" && skipF != "" {
-		return fmt.Errorf("Include and skip folders are mutually exclusive")
-	}
+func validateRatio(ratio int) error {
 	if ratio < 0 || ratio > 100 {
 		return fmt.Errorf("Ratio should be between 0 and 100, got %d\n", ratio)
 	}
 	return nil
 }
 
-func parse(s string) []string {
+func parseFolder(s string) []string {
 	if s == "" {
 		return []string{}
 	}
 	return strings.Split(s, ",")
 }
 
-func (p Params) parseDateString(dateType string) time.Time {
-    dateMap := map[string]string{
-        "fdate": p.fdate,
-        "tdate": p.tdate,
+func (p *Params) setDateParams(fdate, tdate string) error {
+    fd, err := time.Parse("20060102", fdate)
+    if err != nil {
+        return fmt.Errorf("Invalid date format - needs YYYYMMDD, got %s for fdate\n", fdate)
     }
-    toGet, ok := dateMap[dateType]
-    if !ok {
-        return fmt.Errorf("Let's think about this..this might need to be run during validation")
+    td, err := time.Parse("20060102", tdate)
+    if err != nil {
+        return fmt.Errorf("Invalid date format - needs YYYYMMDD, got %s for tdate\n", tdate)
     }
-    fmt.Printf("ok? %v\n", ok)
-    date, _ := time.Parse("20060102", toGet)
-	return date
+    p.fdate = fd
+    p.tdate = td
+	return nil
+}
+
+func (p *Params) setFolderParams(includeF, skipF string) error {
+	if includeF != "" && skipF != "" {
+		return fmt.Errorf("Include and skip folders are mutually exclusive")
+	}
+	p.includeF = parseFolder(includeF)
+	p.skipF = parseFolder(skipF)
+    return nil
 }
 
 func getParams() (*Params, error) {
@@ -58,16 +64,22 @@ func getParams() (*Params, error) {
 	flag.IntVar(&p.maxDuration, "maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
 	flag.IntVar(&p.stabilizer, "stabilizer", math.MaxInt32, "Specifies the interval at which elements are fixed in place during shuffling (they still could be swapped)")
 	flag.IntVar(&p.ratio, "ratio", 100, "Specifies the ratio of files to be included in the playlist (e.g. 80 means roughly 80%)")
-	flag.StringVar(&p.fdate, "fdate", "20000101", "Files created after fdate will be considered")
-	flag.StringVar(&p.tdate, "tdate", "20300101", "Files created before tdate will be considered")
+    fdate := flag.String("fdate", "20000101", "Files created after fdate will be considered")
+    tdate := flag.String("tdate", "20300101", "Files created before tdate will be considered")
 	includeF := flag.String("include", "", "Folders to consider")
 	skipF := flag.String("skip", "", "Folders to skip")
 	flag.Parse()
-	err := validateParams(*includeF, *skipF, p.ratio)
+	err := validateRatio(p.ratio)
 	if err != nil {
 		return nil, err
 	}
-	p.includeF = parse(*includeF)
-	p.skipF = parse(*skipF)
+    err = p.setFolderParams(*includeF, *skipF)
+    if err != nil {
+        return nil, err
+    }
+    err = p.setDateParams(*fdate, *tdate)
+    if err != nil {
+        return nil, err
+    }
 	return p, nil
 }

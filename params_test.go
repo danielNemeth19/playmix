@@ -4,20 +4,18 @@ import (
 	"playmix/internal/assert"
 	"slices"
 	"testing"
-    "time"
+	"time"
 )
 
 func TestParamsValidateRatio(t *testing.T) {
 	err := validateRatio(100)
 	assert.Equal(t, "Validate return nil\n", nil, err)
+
 	err = validateRatio(-50)
-	if err == nil {
-		t.Errorf("Validate ratio should return error, got: %v\n", err)
-	}
+	assert.ErrorRaised(t, "Validate ratio should return error", err, true)
+
 	err = validateRatio(150)
-	if err == nil {
-		t.Errorf("Validate ratio should return error, got: %v\n", err)
-	}
+	assert.ErrorRaised(t, "Validate ratio should return error", err, true)
 }
 
 func TestParamsParseNil(t *testing.T) {
@@ -52,32 +50,28 @@ func TestParamsParse(t *testing.T) {
 
 func TestParamsSetDateParams(t *testing.T) {
 	p := Params{}
-    p.setDateParams("20230326", "20240326")
+	p.setDateParams("20230326", "20240326")
 
-    expectedFDate := time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC)
-    expectedTDate := time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC)
-    assert.Equal(t, "Should convert string to fdate", expectedFDate, p.fdate)
-    assert.Equal(t, "Should convert string to tdate", expectedTDate, p.tdate)
+	expectedFDate := time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC)
+	expectedTDate := time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC)
+	assert.Equal(t, "Should convert string to fdate", expectedFDate, p.fdate)
+	assert.Equal(t, "Should convert string to tdate", expectedTDate, p.tdate)
 }
 
 func TestParamsSetDateParamsError(t *testing.T) {
 	p := Params{}
-    err := p.setDateParams("invalid", "20240326")
-    if err == nil {
-        t.Errorf("Setting date params should return error, got: %v\n", err)
-    }
-    err = p.setDateParams("20241212", "")
-    if err == nil {
-        t.Errorf("Setting date params should return error, got: %v\n", err)
-    }
+	err := p.setDateParams("invalid", "20240326")
+	assert.ErrorRaised(t, "Setting date params should return error", err, true)
+	err = p.setDateParams("20241212", "")
+	assert.ErrorRaised(t, "Setting date params should return error", err, true)
 }
 
 func TestParamsSetFolderParams(t *testing.T) {
 	p := Params{}
-    p.setFolderParams("folderA,folderB", "")
+	p.setFolderParams("folderA,folderB", "")
 
-    expectedIncludeF := []string{"folderA", "folderB"}
-    expectedSkipF := []string{}
+	expectedIncludeF := []string{"folderA", "folderB"}
+	expectedSkipF := []string{}
 	if !slices.Equal(expectedIncludeF, p.includeF) {
 		t.Errorf("SetFolderParams should return slice: %v, got %v\n", expectedIncludeF, p.includeF)
 	}
@@ -88,9 +82,6 @@ func TestParamsSetFolderParams(t *testing.T) {
 
 func TestParamsSetFolderParamsError(t *testing.T) {
 	p := Params{}
-    err := p.setDateParams("folderA,folderB", "folderC,folderD")
-    if err == nil {
-        t.Errorf("Setting folder params should return error, got: %v\n", err)
-    }
+	err := p.setFolderParams("folderA,folderB", "folderC,folderD")
+	assert.ErrorRaised(t, "Folder params are mutually exclusive", err, true)
 }
-

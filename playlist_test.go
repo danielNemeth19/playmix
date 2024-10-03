@@ -25,9 +25,7 @@ func TestPlaylist_allocate(t *testing.T) {
 		{"DurOver240", durB.DurOver240, 1},
 	}
 	for _, tt := range tests {
-		if tt.got != tt.expected {
-			assert.Equal(t, tt.name, tt.got, tt.expected)
-		}
+		assert.Equal(t, tt.name, tt.got, tt.expected)
 	}
 }
 
@@ -46,9 +44,7 @@ func TestPlaylistGetDirRootHasSeparator(t *testing.T) {
 		AbsPath: "/home/user/Music/Genre/Artist/Album/Track01.mp4",
 	}
 	got := item.getDir(root)
-	if got != expected {
-		assert.Equal(t, "root has separator", got, expected)
-	}
+	assert.Equal(t, "root has separator", got, expected)
 }
 
 func TestPlaylistGetDirRootNoSeparator(t *testing.T) {
@@ -58,9 +54,7 @@ func TestPlaylistGetDirRootNoSeparator(t *testing.T) {
 		AbsPath: "/home/user/Music/Genre/Artist/Album/Track01.mp4",
 	}
 	got := item.getDir(root)
-	if got != expected {
-		assert.Equal(t, "root no separator", got, expected)
-	}
+	assert.Equal(t, "root no separator", got, expected)
 }
 
 func TestPlaylistGetDirRoot(t *testing.T) {
@@ -70,7 +64,5 @@ func TestPlaylistGetDirRoot(t *testing.T) {
 		AbsPath: "/home/user/Music/Genre/Artist/Album/Track01.mp4",
 	}
 	got := item.getDir(root)
-	if got != expected {
-		assert.Equal(t, "File in root", got, expected)
-	}
+	assert.Equal(t, "File in root", got, expected)
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"playmix/internal/assert"
-	"slices"
 	"testing"
 	"time"
 )
@@ -22,30 +21,21 @@ func TestParamsParseNil(t *testing.T) {
 	input := ""
 	expected := []string{}
 	parsed := parseFolder(input)
-	assert.Equal(t, "Parse should return empty slice", len(expected), 0)
-	if !slices.Equal(parsed, expected) {
-		t.Errorf("Parse should return empy slice: %v, got %v\n", expected, parsed)
-	}
+    assert.EqualSlice(t, "Should return empty slice", parsed, expected)
 }
 
 func TestParamsParseOneItem(t *testing.T) {
 	input := "abc"
 	expected := []string{"abc"}
 	parsed := parseFolder(input)
-	assert.Equal(t, "Parse should return slice", len(expected), 1)
-	if !slices.Equal(parsed, expected) {
-		t.Errorf("Parse should return slice: %v, got %v\n", expected, parsed)
-	}
+    assert.EqualSlice(t, "Should return slice", parsed, expected)
 }
 
 func TestParamsParse(t *testing.T) {
 	input := "a,b,c"
 	expected := []string{"a", "b", "c"}
 	parsed := parseFolder(input)
-	assert.Equal(t, "Parse should return slice", len(expected), 3)
-	if !slices.Equal(parsed, expected) {
-		t.Errorf("Parse should return slice: %v, got %v\n", expected, parsed)
-	}
+    assert.EqualSlice(t, "Should return multiple folders in slice", parsed, expected)
 }
 
 func TestParamsSetDateParams(t *testing.T) {
@@ -72,12 +62,8 @@ func TestParamsSetFolderParams(t *testing.T) {
 
 	expectedIncludeF := []string{"folderA", "folderB"}
 	expectedSkipF := []string{}
-	if !slices.Equal(expectedIncludeF, p.includeF) {
-		t.Errorf("SetFolderParams should return slice: %v, got %v\n", expectedIncludeF, p.includeF)
-	}
-	if !slices.Equal(expectedSkipF, p.skipF) {
-		t.Errorf("SetFolderParams should return slice: %v, got %v\n", expectedSkipF, p.skipF)
-	}
+    assert.EqualSlice(t, "Should parse include folder param to slice", p.includeF, expectedIncludeF)
+    assert.EqualSlice(t, "Should parse skip folder param to slice", p.skipF, expectedSkipF)
 }
 
 func TestParamsSetFolderParamsError(t *testing.T) {

@@ -37,32 +37,22 @@ func TestPlaylistToSkip(t *testing.T) {
 	assert.Equal(t, "toSkip to be true", verdict, true)
 }
 
-func TestPlaylistGetDirRootHasSeparator(t *testing.T) {
-	root := "/home/user/Music/"
-	expected := "Genre/Artist/Album"
-	item := MediaItem{
-		AbsPath: "/home/user/Music/Genre/Artist/Album/Track01.mp4",
-	}
-	got := item.getDir(root)
-	assert.Equal(t, "root has separator", got, expected)
-}
-
-func TestPlaylistGetDirRootNoSeparator(t *testing.T) {
-	root := "/home/user/Music"
-	expected := "Genre/Artist/Album"
-	item := MediaItem{
-		AbsPath: "/home/user/Music/Genre/Artist/Album/Track01.mp4",
-	}
-	got := item.getDir(root)
-	assert.Equal(t, "root no separator", got, expected)
-}
-
 func TestPlaylistGetDirRoot(t *testing.T) {
-	root := "/home/user/Music/Genre/Artist/Album"
-	expected := "Album"
+	root := []string{"home", "user", "Music"}
+	expected := "Music"
+	item := MediaItem{
+		AbsPath: "/home/user/Music/Track01.mp4",
+	}
+	got := item.getRelativeDir(root)
+	assert.Equal(t, "Should get relative dir for file in root", got, expected)
+}
+
+func TestPlaylistGetDirSubFolders(t *testing.T) {
+	root := []string{"home", "user", "Music"}
+	expected := "Genre/Artist/Album"
 	item := MediaItem{
 		AbsPath: "/home/user/Music/Genre/Artist/Album/Track01.mp4",
 	}
-	got := item.getDir(root)
-	assert.Equal(t, "File in root", got, expected)
+	got := item.getRelativeDir(root)
+	assert.Equal(t, "Should get relative dir for file in subfolder", got, expected)
 }

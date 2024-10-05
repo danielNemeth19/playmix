@@ -21,21 +21,21 @@ func TestParamsParseNil(t *testing.T) {
 	input := ""
 	expected := []string{}
 	parsed := parseFolder(input)
-    assert.EqualSlice(t, "Should return empty slice", parsed, expected)
+	assert.EqualSlice(t, "Should return empty slice", parsed, expected)
 }
 
 func TestParamsParseOneItem(t *testing.T) {
 	input := "abc"
 	expected := []string{"abc"}
 	parsed := parseFolder(input)
-    assert.EqualSlice(t, "Should return slice", parsed, expected)
+	assert.EqualSlice(t, "Should return slice", parsed, expected)
 }
 
 func TestParamsParse(t *testing.T) {
 	input := "a,b,c"
 	expected := []string{"a", "b", "c"}
 	parsed := parseFolder(input)
-    assert.EqualSlice(t, "Should return multiple folders in slice", parsed, expected)
+	assert.EqualSlice(t, "Should return multiple folders in slice", parsed, expected)
 }
 
 func TestParamsSetDateParams(t *testing.T) {
@@ -62,8 +62,8 @@ func TestParamsSetFolderParams(t *testing.T) {
 
 	expectedIncludeF := []string{"folderA", "folderB"}
 	expectedSkipF := []string{}
-    assert.EqualSlice(t, "Should parse include folder param to slice", p.includeF, expectedIncludeF)
-    assert.EqualSlice(t, "Should parse skip folder param to slice", p.skipF, expectedSkipF)
+	assert.EqualSlice(t, "Should parse include folder param to slice", p.includeF, expectedIncludeF)
+	assert.EqualSlice(t, "Should parse skip folder param to slice", p.skipF, expectedSkipF)
 }
 
 func TestParamsSetFolderParamsError(t *testing.T) {

@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
-	"time"
+	// "syscall"
+	// "time"
 
 	"github.com/alfg/mp4"
 )
@@ -25,16 +25,15 @@ type MediaItem struct {
 }
 
 // TODO: This dirName could be used writing a proper title
-func (m MediaItem) getDir(root string) string {
-	folderPath := filepath.Dir(m.AbsPath)
-	if root == folderPath {
-		return filepath.Base(folderPath)
-	}
-	if !strings.HasSuffix(root, string(os.PathSeparator)) {
-		root += string(os.PathSeparator)
-	}
+func (m MediaItem) getRelativeDir(rootParts []string) string {
+	fileParts := getPathParts(m.AbsPath)
 
-	return strings.Split(folderPath, root)[1]
+	if len(fileParts) == len(rootParts) {
+		return filepath.Base(filepath.Dir(m.AbsPath))
+	} else {
+		res := fileParts[len(rootParts):]
+		return filepath.Join(res...)
+	}
 }
 
 type Summarizer struct {
@@ -113,12 +112,13 @@ func toSkip(name string, skip []string) bool {
 	return false
 }
 
+// TODO: maybe use the path separator utility here too?
 func isIncluded(root string, path string, include []string) bool {
 	if len(include) == 0 {
 		return true
 	}
 	parts := strings.Split(path, root)
-	for _, folder := range strings.Split(parts[1], string(os.PathSeparator)) {
+	for _, folder := range strings.Split(parts[1], string(filepath.Separator)) {
 		for _, f := range include {
 			if folder == f {
 				return true
@@ -130,6 +130,7 @@ func isIncluded(root string, path string, include []string) bool {
 
 func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, error) {
 	var items []MediaItem
+	rootParts := getPathParts(p)
 	summary := Summarizer{
 		ratio:         params.ratio,
 		totalScanned:  0,
@@ -146,10 +147,14 @@ func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, erro
 			return filepath.SkipDir
 		}
 		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(p, path, params.includeF) {
-			file, _ := d.Info()
-			ctime := file.Sys().(*syscall.Stat_t).Ctim
-			cTime := time.Unix(ctime.Sec, ctime.Nsec)
-			fmt.Printf("Change time: %v\n", cTime)
+			// file, _ := d.Info()
+			// ctime := file.Sys().(*syscall.Stat_t).Ctim
+			// cTime := time.Unix(ctime.Sec, ctime.Nsec)
+			// fmt.Printf("Change time: %v\n", cTime)
+			// mTime := file.ModTime()
+			// fmt.Printf("Modified time: %v\n", mTime)
+			// fmt.Printf("%s -- %v -- %v\n", file.Name(), cTime, mTime)
+
 			if selector(params.ratio) {
 				duration, err := getDuration(path)
 				summary.dBucket.allocate(duration)
@@ -158,7 +163,7 @@ func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, erro
 				}
 				if duration > float64(params.minDuration) && duration < float64(params.maxDuration) {
 					item := MediaItem{Id: idx, AbsPath: path, Name: d.Name(), Duration: duration}
-					item.Dir = item.getDir(p)
+					item.Dir = item.getRelativeDir(rootParts)
 					items = append(items, item)
 					summary.totalDuration += duration
 					summary.totalSelected++

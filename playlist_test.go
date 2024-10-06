@@ -37,6 +37,38 @@ func TestPlaylistToSkip(t *testing.T) {
 	assert.Equal(t, "toSkip to be true", verdict, true)
 }
 
+func TestIsIncludedIfEmptyFilter(t *testing.T) {
+	root := []string{"home", "user", "Music"}
+    path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
+    inc := []string{}
+    got := isIncluded(root, path, inc)
+	assert.Equal(t, "Should be included", got, true)
+}
+
+func TestIsIncluded(t *testing.T) {
+	root := []string{"home", "user", "Music"}
+    path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
+    inc := []string{"Album"}
+    got := isIncluded(root, path, inc)
+	assert.Equal(t, "Should be included", got, true)
+}
+
+func TestIsIncludedFalse(t *testing.T) {
+	root := []string{"home", "user", "Music"}
+    path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
+    inc := []string{"OtherArtist"}
+    got := isIncluded(root, path, inc)
+	assert.Equal(t, "Should not be included", got, false)
+}
+
+func TestIsIncludedFalseIfFolderNotWithinRoot(t *testing.T) {
+	root := []string{"home", "user", "Music"}
+    path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
+    inc := []string{"home", "user"}
+    got := isIncluded(root, path, inc)
+	assert.Equal(t, "Should not be included", got, false)
+}
+
 func TestPlaylistGetDirRoot(t *testing.T) {
 	root := []string{"home", "user", "Music"}
 	expected := "Music"

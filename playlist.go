@@ -8,7 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"strings"
+	// "strings"
 	// "syscall"
 	// "time"
 
@@ -31,8 +31,8 @@ func (m MediaItem) getRelativeDir(rootParts []string) string {
 	if len(fileParts) == len(rootParts) {
 		return filepath.Base(filepath.Dir(m.AbsPath))
 	} else {
-		res := fileParts[len(rootParts):]
-		return filepath.Join(res...)
+		relativeParts := fileParts[len(rootParts):]
+		return filepath.Join(relativeParts...)
 	}
 }
 
@@ -113,18 +113,18 @@ func toSkip(name string, skip []string) bool {
 }
 
 // TODO: maybe use the path separator utility here too?
-func isIncluded(root string, path string, include []string) bool {
+func isIncluded(rootParts []string, path string, include []string) bool {
 	if len(include) == 0 {
 		return true
 	}
-	parts := strings.Split(path, root)
-	for _, folder := range strings.Split(parts[1], string(filepath.Separator)) {
+    parts := getPathParts(path)
+    for _, folder := range parts[len(rootParts):] {
 		for _, f := range include {
 			if folder == f {
 				return true
 			}
-		}
-	}
+        }
+    }
 	return false
 }
 
@@ -146,7 +146,7 @@ func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, erro
 		if d.IsDir() && toSkip(d.Name(), params.skipF) {
 			return filepath.SkipDir
 		}
-		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(p, path, params.includeF) {
+		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(rootParts, path, params.includeF) {
 			// file, _ := d.Info()
 			// ctime := file.Sys().(*syscall.Stat_t).Ctim
 			// cTime := time.Unix(ctime.Sec, ctime.Nsec)

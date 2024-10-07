@@ -8,9 +8,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	// "strings"
-	// "syscall"
-	// "time"
 
 	"github.com/alfg/mp4"
 )
@@ -117,21 +114,32 @@ func isIncluded(rootParts []string, path string, include []string) bool {
 	if len(include) == 0 {
 		return true
 	}
-    parts := getPathParts(path)
-    for _, folder := range parts[len(rootParts):] {
+	parts := getPathParts(path)
+	for _, folder := range parts[len(rootParts):] {
 		for _, f := range include {
 			if folder == f {
 				return true
 			}
-        }
-    }
+		}
+	}
 	return false
+}
+
+func dateFilter(d fs.DirEntry, params Params) bool {
+    // TODO: mTime will need to be converted to UTC
+    file, _ := d.Info()
+    mTime := file.ModTime()
+    if mTime.After(params.fdate) && mTime.Before(params.tdate) {
+        fmt.Printf("selected: %s -- %v is between %v and %v\n", file.Name(), mTime, params.fdate, params.tdate)
+        return true
+    } 
+    return false
 }
 
 func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, error) {
 	var items []MediaItem
 	rootParts := getPathParts(p)
-	summary := Summarizer{
+	summary := Summarizer{ // TODO: factors this out to be a parameter
 		ratio:         params.ratio,
 		totalScanned:  0,
 		totalSelected: 0,
@@ -146,15 +154,7 @@ func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, erro
 		if d.IsDir() && toSkip(d.Name(), params.skipF) {
 			return filepath.SkipDir
 		}
-		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(rootParts, path, params.includeF) {
-			// file, _ := d.Info()
-			// ctime := file.Sys().(*syscall.Stat_t).Ctim
-			// cTime := time.Unix(ctime.Sec, ctime.Nsec)
-			// fmt.Printf("Change time: %v\n", cTime)
-			// mTime := file.ModTime()
-			// fmt.Printf("Modified time: %v\n", mTime)
-			// fmt.Printf("%s -- %v -- %v\n", file.Name(), cTime, mTime)
-
+		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(rootParts, path, params.includeF) && dateFilter(d, params) {
 			if selector(params.ratio) {
 				duration, err := getDuration(path)
 				summary.dBucket.allocate(duration)

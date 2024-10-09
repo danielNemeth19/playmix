@@ -43,32 +43,30 @@ func TestGetPathPartsForRoot(t *testing.T) {
 	assert.Equal(t, "Should have parts", len(got), 3)
 }
 
-func TestIsMediaFile(t *testing.T){
-    tests := []struct{
-        ext string
-        expected bool
-        name string
-
-    }{
-        {
-            ext: ".mp4",
-            expected: true,
-            name: "Should be selected: .mp4",
-        },
-        {
-            ext: ".nfo",
-            expected: false,
-            name: "Should not be selected: .nfo",
-        },
-        {
-            ext: ".mkv",
-            expected: true,
-            name: "Should be selected: .mkv",
-        },
-
-    }
-    for _, tt := range tests {
-        verdict := isMediaFile(tt.ext)
-        assert.Equal(t, tt.name, verdict, tt.expected)
-    }
+func TestIsMediaFile(t *testing.T) {
+	tests := []struct {
+		ext      string
+		expected bool
+		name     string
+	}{
+		{
+			ext:      ".mp4",
+			expected: true,
+			name:     "Should be selected: .mp4",
+		},
+		{
+			ext:      ".nfo",
+			expected: false,
+			name:     "Should not be selected: .nfo",
+		},
+		{
+			ext:      ".mkv",
+			expected: true,
+			name:     "Should be selected: .mkv",
+		},
+	}
+	for _, tt := range tests {
+		verdict := isMediaFile(tt.ext)
+		assert.Equal(t, tt.name, verdict, tt.expected)
+	}
 }

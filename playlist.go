@@ -109,7 +109,6 @@ func toSkip(name string, skip []string) bool {
 	return false
 }
 
-// TODO: maybe use the path separator utility here too?
 func isIncluded(rootParts []string, path string, include []string) bool {
 	if len(include) == 0 {
 		return true
@@ -126,14 +125,13 @@ func isIncluded(rootParts []string, path string, include []string) bool {
 }
 
 func dateFilter(d fs.DirEntry, params Params) bool {
-    // TODO: mTime will need to be converted to UTC
-    file, _ := d.Info()
-    mTime := file.ModTime()
-    if mTime.After(params.fdate) && mTime.Before(params.tdate) {
-        fmt.Printf("selected: %s -- %v is between %v and %v\n", file.Name(), mTime, params.fdate, params.tdate)
-        return true
-    } 
-    return false
+	file, _ := d.Info()
+	mTime := file.ModTime().UTC()
+	if mTime.After(params.fdate) && mTime.Before(params.tdate) {
+		fmt.Printf("selected: %s -- %v is between %v and %v\n", file.Name(), mTime, params.fdate, params.tdate)
+		return true
+	}
+	return false
 }
 
 func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, error) {

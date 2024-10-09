@@ -1,9 +1,81 @@
 package main
 
 import (
+	"io/fs"
 	"playmix/internal/assert"
 	"testing"
+	"time"
 )
+
+type MockFileInfo struct {
+	fileName string
+	size     int64
+	mode     fs.FileMode
+	modTime  time.Time
+	sys      any
+}
+
+func (m MockFileInfo) Name() string {
+	return m.fileName
+}
+
+func (m MockFileInfo) Size() int64 {
+	return m.size
+}
+
+func (m MockFileInfo) Mode() fs.FileMode {
+	return m.mode
+}
+
+func (m MockFileInfo) ModTime() time.Time {
+	return m.modTime
+}
+
+func (m MockFileInfo) IsDir() bool {
+	return false
+}
+
+func (m MockFileInfo) Sys() any {
+	return m.sys
+}
+
+type MockDirEntry struct {
+	name  string
+	mInfo fs.FileInfo
+}
+
+func (m MockDirEntry) Name() string {
+	return m.name
+}
+
+func (m MockDirEntry) IsDir() bool {
+	return false
+}
+
+func (m MockDirEntry) Type() fs.FileMode {
+	return 2
+}
+
+func (m MockDirEntry) Info() (fs.FileInfo, error) {
+	return m.mInfo, nil
+}
+
+func TestDateFilter(t *testing.T) {
+	params := Params{
+		fdate: time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC),
+		tdate: time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC),
+	}
+	myM := MockFileInfo{
+		fileName: "myfile.mp4",
+		modTime:  time.Date(2023, 6, 16, 0, 0, 0, 0, time.UTC),
+	}
+	m := MockDirEntry{
+		name:  myM.Name(),
+		mInfo: myM,
+	}
+	got := dateFilter(m, params)
+	assert.Equal(t, "Should be selected", got, true)
+}
 
 func TestPlaylist_allocate(t *testing.T) {
 	durB := DurationBucket{}
@@ -39,33 +111,33 @@ func TestPlaylistToSkip(t *testing.T) {
 
 func TestIsIncludedIfEmptyFilter(t *testing.T) {
 	root := []string{"home", "user", "Music"}
-    path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
-    inc := []string{}
-    got := isIncluded(root, path, inc)
+	path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
+	inc := []string{}
+	got := isIncluded(root, path, inc)
 	assert.Equal(t, "Should be included", got, true)
 }
 
 func TestIsIncluded(t *testing.T) {
 	root := []string{"home", "user", "Music"}
-    path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
-    inc := []string{"Album"}
-    got := isIncluded(root, path, inc)
+	path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
+	inc := []string{"Album"}
+	got := isIncluded(root, path, inc)
 	assert.Equal(t, "Should be included", got, true)
 }
 
 func TestIsIncludedFalse(t *testing.T) {
 	root := []string{"home", "user", "Music"}
-    path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
-    inc := []string{"OtherArtist"}
-    got := isIncluded(root, path, inc)
+	path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
+	inc := []string{"OtherArtist"}
+	got := isIncluded(root, path, inc)
 	assert.Equal(t, "Should not be included", got, false)
 }
 
 func TestIsIncludedFalseIfFolderNotWithinRoot(t *testing.T) {
 	root := []string{"home", "user", "Music"}
-    path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
-    inc := []string{"home", "user"}
-    got := isIncluded(root, path, inc)
+	path := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
+	inc := []string{"home", "user"}
+	got := isIncluded(root, path, inc)
 	assert.Equal(t, "Should not be included", got, false)
 }
 

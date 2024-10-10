@@ -8,7 +8,7 @@ import (
 
 func TestParamsValidateRatio(t *testing.T) {
 	err := validateRatio(100)
-	assert.Equal(t, "Validate return nil\n", nil, err)
+	assert.Equal(t, "Validate return nil", nil, err)
 
 	err = validateRatio(-50)
 	assert.ErrorRaised(t, "Validate ratio should return error", err, true)

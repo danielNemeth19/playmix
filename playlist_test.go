@@ -1,80 +1,44 @@
 package main
 
 import (
-	"io/fs"
 	"playmix/internal/assert"
+	"playmix/internal/mocks"
 	"testing"
 	"time"
 )
 
-type MockFileInfo struct {
-	fileName string
-	size     int64
-	mode     fs.FileMode
-	modTime  time.Time
-	sys      any
-}
-
-func (m MockFileInfo) Name() string {
-	return m.fileName
-}
-
-func (m MockFileInfo) Size() int64 {
-	return m.size
-}
-
-func (m MockFileInfo) Mode() fs.FileMode {
-	return m.mode
-}
-
-func (m MockFileInfo) ModTime() time.Time {
-	return m.modTime
-}
-
-func (m MockFileInfo) IsDir() bool {
-	return false
-}
-
-func (m MockFileInfo) Sys() any {
-	return m.sys
-}
-
-type MockDirEntry struct {
-	name  string
-	mInfo fs.FileInfo
-}
-
-func (m MockDirEntry) Name() string {
-	return m.name
-}
-
-func (m MockDirEntry) IsDir() bool {
-	return false
-}
-
-func (m MockDirEntry) Type() fs.FileMode {
-	return 2
-}
-
-func (m MockDirEntry) Info() (fs.FileInfo, error) {
-	return m.mInfo, nil
-}
-
-func TestDateFilter(t *testing.T) {
+func TestDateFilterIn(t *testing.T) {
 	params := Params{
 		fdate: time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC),
 		tdate: time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC),
 	}
-	myM := MockFileInfo{
-		fileName: "myfile.mp4",
-		modTime:  time.Date(2023, 6, 16, 0, 0, 0, 0, time.UTC),
-	}
-	m := MockDirEntry{
-		name:  myM.Name(),
-		mInfo: myM,
-	}
-	got := dateFilter(m, params)
+	inDate := time.Date(2023, 6, 16, 0, 0, 0, 0, time.UTC)
+	fd := mocks.CreateFakeDirEntry("myfile.mp4", inDate)
+
+	got := dateFilter(fd, params)
 	assert.Equal(t, "Should be selected", got, true)
+}
+
+func TestDateFilterBefore(t *testing.T) {
+	params := Params{
+		fdate: time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC),
+		tdate: time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC),
+	}
+	beforeDate := time.Date(2022, 6, 16, 0, 0, 0, 0, time.UTC)
+	fdBefore := mocks.CreateFakeDirEntry("1.mp4", beforeDate)
+	got := dateFilter(fdBefore, params)
+	assert.Equal(t, "Should not be selected as file is before", got, false)
+}
+func TestDateFilterAfter(t *testing.T) {
+	params := Params{
+		fdate: time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC),
+		tdate: time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC),
+	}
+	afterDate := time.Date(2024, 6, 16, 0, 0, 0, 0, time.UTC)
+	// fdAfter := mocks.CreateFakeDirEntry("2.mp4", afterDate)
+	fdAfter := mocks.CreateFakeDirEntry("2.mp4", afterDate)
+	got := dateFilter(fdAfter, params)
+	assert.Equal(t, "Should not be selected as file is before", got, false)
 }
 
 func TestPlaylist_allocate(t *testing.T) {

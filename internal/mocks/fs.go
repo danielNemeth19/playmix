@@ -6,26 +6,26 @@ import (
 )
 
 type FakeFileInfo struct {
-	FileName     string
-	SizeField    int64
-	ModeField    fs.FileMode
-	ModTimeField time.Time
+	name     string
+	size    int64
+	mode    fs.FileMode
+	modeTime time.Time
 }
 
 func (m FakeFileInfo) Name() string {
-	return m.FileName
+	return m.name
 }
 
 func (m FakeFileInfo) Size() int64 {
-	return m.SizeField
+	return m.size
 }
 
 func (m FakeFileInfo) Mode() fs.FileMode {
-	return m.ModeField
+	return m.mode
 }
 
 func (m FakeFileInfo) ModTime() time.Time {
-	return m.ModTimeField
+	return m.modeTime
 }
 
 func (m FakeFileInfo) IsDir() bool {
@@ -37,12 +37,12 @@ func (m FakeFileInfo) Sys() any {
 }
 
 type FakeDirEntry struct {
-	NameField string
-	FileInfo  fs.FileInfo
+	name string
+	fileInfo  fs.FileInfo
 }
 
 func (m FakeDirEntry) Name() string {
-	return m.NameField
+	return m.name
 }
 
 func (m FakeDirEntry) IsDir() bool {
@@ -54,17 +54,17 @@ func (m FakeDirEntry) Type() fs.FileMode {
 }
 
 func (m FakeDirEntry) Info() (fs.FileInfo, error) {
-	return m.FileInfo, nil
+	return m.fileInfo, nil
 }
 
 func CreateFakeDirEntry(name string, modTime time.Time) fs.DirEntry {
 	ff := FakeFileInfo{
-		FileName:     name,
-		ModTimeField: modTime,
+		name:     name,
+		modeTime: modTime,
 	}
 	fd := FakeDirEntry{
-		NameField: ff.Name(),
-		FileInfo:  ff,
+		name: ff.Name(),
+		fileInfo:  ff,
 	}
 	return fd
 }

@@ -54,6 +54,8 @@ func TestParamsSetDateParamsError(t *testing.T) {
 	assert.ErrorRaised(t, "Setting date params should return error", err, true)
 	err = p.setDateParams("20241212", "")
 	assert.ErrorRaised(t, "Setting date params should return error", err, true)
+	err = p.setDateParams("20241212", "20231212")
+	assert.ErrorRaised(t, "Setting date params should return error", err, true)
 }
 
 func TestParamsSetFolderParams(t *testing.T) {

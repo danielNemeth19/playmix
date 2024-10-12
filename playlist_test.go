@@ -35,10 +35,9 @@ func TestDateFilterAfter(t *testing.T) {
 		tdate: time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC),
 	}
 	afterDate := time.Date(2024, 6, 16, 0, 0, 0, 0, time.UTC)
-	// fdAfter := mocks.CreateFakeDirEntry("2.mp4", afterDate)
 	fdAfter := mocks.CreateFakeDirEntry("2.mp4", afterDate)
 	got := dateFilter(fdAfter, params)
-	assert.Equal(t, "Should not be selected as file is before", got, false)
+	assert.Equal(t, "Should not be selected as file is after", got, false)
 }
 
 func TestPlaylist_allocate(t *testing.T) {

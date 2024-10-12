@@ -1,4 +1,5 @@
 package main
+        fmt.Println("so fd is after td...")
 
 import (
 	"encoding/xml"
@@ -128,7 +129,6 @@ func dateFilter(d fs.DirEntry, params Params) bool {
 	file, _ := d.Info()
 	mTime := file.ModTime().UTC()
 	if mTime.After(params.fdate) && mTime.Before(params.tdate) {
-		fmt.Printf("selected: %s -- %v is between %v and %v\n", file.Name(), mTime, params.fdate, params.tdate)
 		return true
 	}
 	return false

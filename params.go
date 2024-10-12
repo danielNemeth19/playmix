@@ -43,6 +43,9 @@ func (p *Params) setDateParams(fdate, tdate string) error {
 	if err != nil {
 		return fmt.Errorf("Invalid date format - needs YYYYMMDD, got %s for tdate\n", tdate)
 	}
+    if fd.After(td) {
+        return fmt.Errorf("fdate should be before tdate: %v - %v\n", fd, td)
+    }
 	p.fdate = fd
 	p.tdate = td
 	return nil

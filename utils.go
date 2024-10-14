@@ -48,18 +48,17 @@ func isMediaFile(ext string) bool {
 	return false
 }
 
-func collectExtensions(p string) ([]string, error) {
+func collectExtensions(fsys fs.FS) ([]string, error) {
 	extensions := []string{}
 	seen := map[string]bool{}
 
-	err := filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if !d.IsDir() {
 			extension := filepath.Ext(path)
 			if !seen[extension] {
-				fmt.Printf("Seen first: %s -- %s, %v\n", extension, d.Name(), d.IsDir())
 				seen[extension] = true
 				extensions = append(extensions, extension)
 			}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -34,8 +35,10 @@ func main() {
 	}
 	log.Printf("Path to be used: %s\n", root)
 
+	// TODO: think about os.DirFS - probably will be used for collectMediaContent too
 	if params.extFlag {
-		extensions, err := collectExtensions(root)
+		fsys := os.DirFS(root)
+		extensions, err := collectExtensions(fsys)
 		if err != nil {
 			log.Fatalf("Error during extension collection: %s\n", err)
 		}

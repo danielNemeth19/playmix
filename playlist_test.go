@@ -13,7 +13,7 @@ func TestDateFilterIn(t *testing.T) {
 		tdate: time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC),
 	}
 	inDate := time.Date(2023, 6, 16, 0, 0, 0, 0, time.UTC)
-	fd := mocks.CreateFakeDirEntry("myfile.mp4", inDate)
+	fd := mocks.CreateFakeDirEntry("myfile.mp4", false, inDate)
 
 	got := dateFilter(fd, params)
 	assert.Equal(t, "Should be selected", got, true)
@@ -25,7 +25,7 @@ func TestDateFilterBefore(t *testing.T) {
 		tdate: time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC),
 	}
 	beforeDate := time.Date(2022, 6, 16, 0, 0, 0, 0, time.UTC)
-	fdBefore := mocks.CreateFakeDirEntry("1.mp4", beforeDate)
+	fdBefore := mocks.CreateFakeDirEntry("1.mp4", false, beforeDate)
 	got := dateFilter(fdBefore, params)
 	assert.Equal(t, "Should not be selected as file is before", got, false)
 }
@@ -35,7 +35,7 @@ func TestDateFilterAfter(t *testing.T) {
 		tdate: time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC),
 	}
 	afterDate := time.Date(2024, 6, 16, 0, 0, 0, 0, time.UTC)
-	fdAfter := mocks.CreateFakeDirEntry("2.mp4", afterDate)
+	fdAfter := mocks.CreateFakeDirEntry("2.mp4", false, afterDate)
 	got := dateFilter(fdAfter, params)
 	assert.Equal(t, "Should not be selected as file is after", got, false)
 }

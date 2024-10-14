@@ -3,6 +3,8 @@ package main
 import (
 	"playmix/internal/assert"
 	"testing"
+	"testing/fstest"
+	"time"
 )
 
 func TestGetPath(t *testing.T) {
@@ -69,4 +71,26 @@ func TestIsMediaFile(t *testing.T) {
 		verdict := isMediaFile(tt.ext)
 		assert.Equal(t, tt.name, verdict, tt.expected)
 	}
+}
+
+func TestCollectExtensions(t *testing.T) {
+	modTime := time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC)
+	fsys := fstest.MapFS{
+		"home/Music/Album/Artist/best_track.wav": {
+			Mode:    0755,
+			ModTime: modTime,
+		},
+		"home/Music/track.mp3": {
+			Mode:    0755,
+			ModTime: modTime,
+		},
+		"home/Music/other_track.mp4": {
+			Mode:    0755,
+			ModTime: modTime,
+		},
+	}
+	got, err := collectExtensions(fsys)
+	assert.ErrorRaised(t, "Should not raise", err, false)
+	want := []string{".wav", ".mp4", ".mp3"}
+	assert.EqualSlice(t, "Should collect unique extensions", got, want)
 }

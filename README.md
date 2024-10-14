@@ -71,6 +71,6 @@ Example options:
 
 ## TODO:
 * supporting ratios per folder
-* supporting timestamp filter for files
+* supporting timestamp filter for files (done)
 * supporting regex patterns for file selection
 * alternating files from folders (i.e. some kind of controlled randomization)

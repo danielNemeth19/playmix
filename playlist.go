@@ -1,5 +1,4 @@
 package main
-        fmt.Println("so fd is after td...")
 
 import (
 	"encoding/xml"

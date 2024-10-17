@@ -1,9 +1,11 @@
 package main
 
 import (
+    "fmt"
 	"playmix/internal/assert"
 	"playmix/internal/mocks"
 	"testing"
+	"testing/fstest"
 	"time"
 )
 
@@ -122,4 +124,20 @@ func TestPlaylistGetDirSubFolders(t *testing.T) {
 	}
 	got := item.getRelativeDir(root)
 	assert.Equal(t, "Should get relative dir for file in subfolder", got, expected)
+}
+
+func TestCollectMediaContent(t *testing.T) {
+	modTime := time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC)
+	fsys := fstest.MapFS{
+		"home/Music/track1.mp4": {
+			Mode:    0755,
+			ModTime: modTime,
+		},
+	}
+    params := Params{}
+	got, _, err := collectMediaContent("home/Music", fsys, params)
+	assert.ErrorRaised(t, "Should not raise", err, false)
+    fmt.Println(got)
+	want := []MediaItem{}
+	assert.EqualSlice(t, "Should collect unique extensions", got, want)
 }

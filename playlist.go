@@ -133,7 +133,7 @@ func dateFilter(d fs.DirEntry, params Params) bool {
 	return false
 }
 
-func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, error) {
+func collectMediaContent(p string, fsys fs.FS, params Params) ([]MediaItem, Summarizer, error) {
 	var items []MediaItem
 	rootParts := getPathParts(p)
 	summary := Summarizer{ // TODO: factors this out to be a parameter
@@ -144,7 +144,7 @@ func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, erro
 		dBucket:       DurationBucket{},
 	}
 	idx := 0
-	err := filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -152,14 +152,15 @@ func collectMediaContent(p string, params Params) ([]MediaItem, Summarizer, erro
 			return filepath.SkipDir
 		}
 		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(rootParts, path, params.includeF) && dateFilter(d, params) {
+            absPath := filepath.Join(p, path)
 			if selector(params.ratio) {
-				duration, err := getDuration(path)
+				duration, err := getDuration(absPath)
 				summary.dBucket.allocate(duration)
 				if err != nil {
 					return err
 				}
 				if duration > float64(params.minDuration) && duration < float64(params.maxDuration) {
-					item := MediaItem{Id: idx, AbsPath: path, Name: d.Name(), Duration: duration}
+					item := MediaItem{Id: idx, AbsPath: absPath, Name: d.Name(), Duration: duration}
 					item.Dir = item.getRelativeDir(rootParts)
 					items = append(items, item)
 					summary.totalDuration += duration

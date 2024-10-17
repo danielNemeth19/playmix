@@ -2,6 +2,7 @@ package main
 
 import (
 	"playmix/internal/assert"
+
 	"testing"
 	"testing/fstest"
 	"time"
@@ -80,7 +81,11 @@ func TestCollectExtensions(t *testing.T) {
 			Mode:    0755,
 			ModTime: modTime,
 		},
-		"home/Music/track.mp3": {
+        "home/Music/track_1.mp3": {
+			Mode:    0755,
+			ModTime: modTime,
+		},
+		"home/Music/track_2.mp3": {
 			Mode:    0755,
 			ModTime: modTime,
 		},
@@ -93,4 +98,12 @@ func TestCollectExtensions(t *testing.T) {
 	assert.ErrorRaised(t, "Should not raise", err, false)
 	want := []string{".wav", ".mp4", ".mp3"}
 	assert.EqualSlice(t, "Should collect unique extensions", got, want)
+}
+
+func TestCollectExtensionsError(t *testing.T) {
+	fsys := fstest.MapFS{
+        "../": {},
+    }
+	_, err := collectExtensions(fsys)
+	assert.ErrorRaised(t, "Should raise", err, true)
 }

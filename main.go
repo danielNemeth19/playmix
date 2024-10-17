@@ -36,15 +36,15 @@ func main() {
 	log.Printf("Path to be used: %s\n", root)
 
 	// TODO: think about os.DirFS - probably will be used for collectMediaContent too
+	fsys := os.DirFS(root)
 	if params.extFlag {
-		fsys := os.DirFS(root)
 		extensions, err := collectExtensions(fsys)
 		if err != nil {
 			log.Fatalf("Error during extension collection: %s\n", err)
 		}
 		fmt.Printf("Extensions: %v\n", extensions)
 	}
-	content, summary, err := collectMediaContent(root, *params)
+	content, summary, err := collectMediaContent(root, fsys, *params)
 	if err != nil {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}

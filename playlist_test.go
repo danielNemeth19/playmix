@@ -1,7 +1,7 @@
 package main
 
 import (
-    "fmt"
+	"fmt"
 	"playmix/internal/assert"
 	"playmix/internal/mocks"
 	"testing"
@@ -116,6 +116,39 @@ func TestPlaylistGetDirRoot(t *testing.T) {
 	assert.Equal(t, "Should get relative dir for file in root", got, expected)
 }
 
+// type FSFileOpener struct {
+// Files map[string]fstest.MapFile
+// }
+
+// func (fs FSFileOpener) Open(fn string) (*os.File, error) {
+// mapFile, ok := fs.Files[fn]
+// if !ok {
+// return nil, fmt.Errorf("File %s not found\n", fn)
+// }
+// f, err := os.CreateTemp("", "temf")
+// if err != nil {
+// return nil, fmt.Errorf("Error creating temp file: %v\n", err)
+// }
+// _, err = f.Write(mapFile.Data)
+// if err != nil {
+// return nil, fmt.Errorf("Write failed: %v\n", err)
+// }
+// return f, nil
+// }
+
+func TestGetDuration(t *testing.T) {
+	fn := "sdfsdftrack.mp4"
+	f := fstest.MapFS{
+		fn: {
+			Data:    []byte("this is my data"),
+			Mode:    0755,
+			ModTime: time.Now(),
+		},
+	}
+	getDurationFS(f, fn)
+
+}
+
 func TestPlaylistGetDirSubFolders(t *testing.T) {
 	root := []string{"home", "user", "Music"}
 	expected := "Genre/Artist/Album"
@@ -128,16 +161,18 @@ func TestPlaylistGetDirSubFolders(t *testing.T) {
 
 func TestCollectMediaContent(t *testing.T) {
 	modTime := time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC)
+	fdate := time.Date(2022, 3, 26, 0, 0, 0, 0, time.UTC)
+	tdate := time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC)
 	fsys := fstest.MapFS{
 		"home/Music/track1.mp4": {
 			Mode:    0755,
 			ModTime: modTime,
 		},
 	}
-    params := Params{}
+	params := Params{fdate: fdate, tdate: tdate, ratio: 100}
 	got, _, err := collectMediaContent("home/Music", fsys, params)
 	assert.ErrorRaised(t, "Should not raise", err, false)
-    fmt.Println(got)
+	fmt.Println(got)
 	want := []MediaItem{}
 	assert.EqualSlice(t, "Should collect unique extensions", got, want)
 }

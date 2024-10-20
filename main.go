@@ -35,7 +35,6 @@ func main() {
 	}
 	log.Printf("Path to be used: %s\n", root)
 
-	// TODO: think about os.DirFS - probably will be used for collectMediaContent too
 	fsys := os.DirFS(root)
 	if params.extFlag {
 		extensions, err := collectExtensions(fsys)

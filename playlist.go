@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
+	"io"
 	"io/fs"
 	"math"
 	"math/rand"
@@ -151,10 +152,11 @@ func collectMediaContent(p string, fsys fs.FS, params Params) ([]MediaItem, Summ
 		if d.IsDir() && toSkip(d.Name(), params.skipF) {
 			return filepath.SkipDir
 		}
-		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(rootParts, path, params.includeF) && dateFilter(d, params) {
-            absPath := filepath.Join(p, path)
+		absPath := filepath.Join(p, path)
+		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(rootParts, absPath, params.includeF) && dateFilter(d, params) {
 			if selector(params.ratio) {
-				duration, err := getDuration(absPath)
+				// duration, err := getDuration(OsFileOpener{}, absPath)
+				duration, err := getDurationFS(fsys, path)
 				summary.dBucket.allocate(duration)
 				if err != nil {
 					return err
@@ -177,8 +179,82 @@ func collectMediaContent(p string, fsys fs.FS, params Params) ([]MediaItem, Summ
 	return items, summary, err
 }
 
-func getDuration(p string) (duration float64, err error) {
-	file, err := os.Open(p)
+type FileReaderAt struct {
+	data []byte
+}
+
+func (f *FileReaderAt) ReadAt(p []byte, off int64) (n int, err error) {
+	if off >= int64(len(f.data)) {
+		return 0, io.EOF
+	}
+	n = copy(p, f.data[off:])
+	if n < len(p) {
+		err = io.EOF
+	}
+	return n, err
+}
+
+type unbufferedReaderAt struct {
+	R io.Reader
+	N int64
+}
+
+func NewUnbufferedReaderAt(r io.Reader) io.ReaderAt {
+	return &unbufferedReaderAt{R: r}
+}
+
+func (u *unbufferedReaderAt) ReadAt(p []byte, off int64) (n int, err error) {
+	if off < u.N {
+		return 0, fmt.Errorf("invalid offset")
+	}
+	diff := off - u.N
+	written, err := io.CopyN(io.Discard, u.R, diff)
+	u.N += written
+	if err != nil {
+		return 0, err
+	}
+
+	n, err = u.R.Read(p)
+	u.N += int64(n)
+	return
+}
+
+func getDurationFS(fsys fs.FS, p string) (duration float64, err error) {
+	fmt.Printf("fsys here is: %s\n", fsys)
+	fmt.Printf("file here is: %s\n", p)
+	file, err := fsys.Open(p)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil {
+		return 0, err
+	}
+	// Read the entire file into memory
+	// data := make([]byte, info.Size())
+	// _, err = io.ReadFull(file, data)
+	// if err != nil {
+	// return 0, err
+	// }
+	readerAt := NewUnbufferedReaderAt(file)
+	mp4, err := mp4.OpenFromReader(readerAt, info.Size())
+	if err != nil {
+		return 0, err
+	}
+	if mp4.Moov == nil {
+		return 0, fmt.Errorf("Moov box not found for %s. Is this mp4?", p)
+	}
+	// rawDuration := float64(mp4.Moov.Mvhd.Duration)
+	// timeScale := float64(mp4.Moov.Mvhd.Timescale)
+
+	// duration = rawDuration / timeScale
+	return 10, nil
+
+}
+
+func getDuration(fo FileOpener, p string) (duration float64, err error) {
+	file, err := fo.Open(p)
 	if err != nil {
 		return 0, err
 	}

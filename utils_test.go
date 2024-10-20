@@ -81,7 +81,7 @@ func TestCollectExtensions(t *testing.T) {
 			Mode:    0755,
 			ModTime: modTime,
 		},
-        "home/Music/track_1.mp3": {
+		"home/Music/track_1.mp3": {
 			Mode:    0755,
 			ModTime: modTime,
 		},
@@ -102,8 +102,8 @@ func TestCollectExtensions(t *testing.T) {
 
 func TestCollectExtensionsError(t *testing.T) {
 	fsys := fstest.MapFS{
-        "../": {},
-    }
+		"../": {},
+	}
 	_, err := collectExtensions(fsys)
 	assert.ErrorRaised(t, "Should raise", err, true)
 }

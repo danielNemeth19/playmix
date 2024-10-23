@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"playmix/internal/assert"
 	"playmix/internal/mocks"
 	"testing"
@@ -116,37 +115,32 @@ func TestPlaylistGetDirRoot(t *testing.T) {
 	assert.Equal(t, "Should get relative dir for file in root", got, expected)
 }
 
-// type FSFileOpener struct {
-// Files map[string]fstest.MapFile
-// }
-
-// func (fs FSFileOpener) Open(fn string) (*os.File, error) {
-// mapFile, ok := fs.Files[fn]
-// if !ok {
-// return nil, fmt.Errorf("File %s not found\n", fn)
-// }
-// f, err := os.CreateTemp("", "temf")
-// if err != nil {
-// return nil, fmt.Errorf("Error creating temp file: %v\n", err)
-// }
-// _, err = f.Write(mapFile.Data)
-// if err != nil {
-// return nil, fmt.Errorf("Write failed: %v\n", err)
-// }
-// return f, nil
-// }
-
-func TestGetDuration(t *testing.T) {
-	fn := "sdfsdftrack.mp4"
+func TestGetDurationErrorNonMediaFile(t *testing.T) {
+	fn := "track.mp4"
 	f := fstest.MapFS{
 		fn: {
-			Data:    []byte("this is my data"),
+			Data:    []byte("No Moovbox so not mp4 file"),
 			Mode:    0755,
 			ModTime: time.Now(),
 		},
 	}
-	getDurationFS(f, fn)
+	duration, err := getDuration(f, fn)
+	assert.Equal(t, "Should be 0", duration, 0)
+	assert.ErrorRaised(t, "Should raise error", err, true)
+}
 
+func TestGetDurationErrorOpen(t *testing.T) {
+	fn := "../"
+	f := fstest.MapFS{
+		fn: {
+			Data:    []byte(""),
+			Mode:    0755,
+			ModTime: time.Now(),
+		},
+	}
+	duration, err := getDuration(f, fn)
+	assert.Equal(t, "Should be 0", duration, 0)
+	assert.ErrorRaised(t, "Should raise error if file doesn't exists", err, true)
 }
 
 func TestPlaylistGetDirSubFolders(t *testing.T) {
@@ -159,7 +153,7 @@ func TestPlaylistGetDirSubFolders(t *testing.T) {
 	assert.Equal(t, "Should get relative dir for file in subfolder", got, expected)
 }
 
-func TestCollectMediaContent(t *testing.T) {
+func TestCollectMediaContentRaisesErrorNonMediaFile(t *testing.T) {
 	modTime := time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC)
 	fdate := time.Date(2022, 3, 26, 0, 0, 0, 0, time.UTC)
 	tdate := time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC)
@@ -170,9 +164,6 @@ func TestCollectMediaContent(t *testing.T) {
 		},
 	}
 	params := Params{fdate: fdate, tdate: tdate, ratio: 100}
-	got, _, err := collectMediaContent("home/Music", fsys, params)
-	assert.ErrorRaised(t, "Should not raise", err, false)
-	fmt.Println(got)
-	want := []MediaItem{}
-	assert.EqualSlice(t, "Should collect unique extensions", got, want)
+	_, _, err := collectMediaContent("home/Music", fsys, params)
+	assert.ErrorRaised(t, "Should raise error", err, true)
 }

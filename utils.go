@@ -11,16 +11,6 @@ import (
 	"time"
 )
 
-type FileOpener interface {
-	Open(fn string) (*os.File, error)
-}
-
-type OsFileOpener struct{}
-
-func (o OsFileOpener) Open(fn string) (*os.File, error) {
-	return os.Open(fn)
-}
-
 func getPath() (string, error) {
 	rootPath := os.Getenv("MEDIA_SOURCE")
 	if rootPath == "" {

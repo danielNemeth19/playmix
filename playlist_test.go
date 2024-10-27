@@ -1,7 +1,6 @@
 package main
 
 import (
-    "fmt"
 	"playmix/internal/assert"
 	"playmix/internal/mocks"
 	"testing"
@@ -116,8 +115,8 @@ func TestPlaylistGetDirRoot(t *testing.T) {
 	assert.Equal(t, "Should get relative dir for file in root", got, expected)
 }
 
-func TestGetDurationFile(t *testing.T) {
-    data := mocks.WriteFile()
+func TestGetDuration(t *testing.T) {
+    data := mocks.CreateData(60)
 	fn := "track.mp4"
 	f := fstest.MapFS{
 		fn: {
@@ -127,9 +126,8 @@ func TestGetDurationFile(t *testing.T) {
 		},
 	}
 	duration, err := getDuration(f, fn)
-	assert.Equal(t, "Should be 0", duration, 0)
-	assert.ErrorRaised(t, "Should raise error", err, true)
-    fmt.Println(err)
+	assert.Equal(t, "Should be 60 seconds", duration, 60)
+	assert.ErrorRaised(t, "Should not raise error", err, false)
 }
 
 func TestGetDurationErrorNonMediaFile(t *testing.T) {

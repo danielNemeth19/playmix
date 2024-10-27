@@ -157,10 +157,10 @@ func collectMediaContent(p string, fsys fs.FS, params Params) ([]MediaItem, Summ
 		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(rootParts, absPath, params.includeF) && dateFilter(d, params) {
 			if selector(params.ratio) {
 				duration, err := getDuration(fsys, path)
-				summary.dBucket.allocate(duration)
 				if err != nil {
 					return err
 				}
+				summary.dBucket.allocate(duration)
 				if duration > float64(params.minDuration) && duration < float64(params.maxDuration) {
 					item := MediaItem{Id: idx, AbsPath: absPath, Name: d.Name(), Duration: duration}
 					item.Dir = item.getRelativeDir(rootParts)
@@ -217,8 +217,8 @@ func getDuration(fsys fs.FS, p string) (duration float64, err error) {
 	timeScale := float64(mp4.Moov.Mvhd.Timescale)
 
 	duration = rawDuration / timeScale
-    durS := atom.GetDurationString(mp4.Moov.Mvhd.Duration, mp4.Moov.Mvhd.Timescale)
-    fmt.Printf("Duration is: %s\n", durS)
+	durS := atom.GetDurationString(mp4.Moov.Mvhd.Duration, mp4.Moov.Mvhd.Timescale)
+	fmt.Printf("Duration is: %s\n", durS)
 	return duration, nil
 }
 

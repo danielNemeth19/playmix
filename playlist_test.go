@@ -116,7 +116,7 @@ func TestPlaylistGetDirRoot(t *testing.T) {
 }
 
 func TestGetDuration(t *testing.T) {
-    data := mocks.CreateData(60)
+	data := mocks.CreateData(60)
 	fn := "track.mp4"
 	f := fstest.MapFS{
 		fn: {
@@ -181,4 +181,22 @@ func TestCollectMediaContentRaisesErrorNonMediaFile(t *testing.T) {
 	params := Params{fdate: fdate, tdate: tdate, ratio: 100}
 	_, _, err := collectMediaContent("home/Music", fsys, params)
 	assert.ErrorRaised(t, "Should raise error", err, true)
+}
+
+func TestCollectMediaContentFile(t *testing.T) {
+	modTime := time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC)
+	fdate := time.Date(2022, 3, 26, 0, 0, 0, 0, time.UTC)
+	tdate := time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC)
+	params := Params{fdate: fdate, tdate: tdate, ratio: 100, maxDuration: 60}
+	data := mocks.CreateData(50)
+	fsys := fstest.MapFS{
+		"home/Music/track1.mp4": {
+			Data:    data,
+			Mode:    0755,
+			ModTime: modTime,
+		},
+	}
+	items, summary, _ := collectMediaContent("home/Music", fsys, params)
+	assert.Equal(t, "Should select one file", items[0].Name, "track1.mp4")
+	assert.Equal(t, "Should select one file", summary.totalSelected, 1)
 }

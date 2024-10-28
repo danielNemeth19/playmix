@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"playmix/internal/assert"
 	"playmix/internal/mocks"
 	"testing"
@@ -173,30 +174,118 @@ func TestCollectMediaContentRaisesErrorNonMediaFile(t *testing.T) {
 	fdate := time.Date(2022, 3, 26, 0, 0, 0, 0, time.UTC)
 	tdate := time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC)
 	fsys := fstest.MapFS{
-		"home/Music/track1.mp4": {
+		"track1.mp4": {
 			Mode:    0755,
 			ModTime: modTime,
 		},
 	}
 	params := Params{fdate: fdate, tdate: tdate, ratio: 100}
-	_, _, err := collectMediaContent("home/Music", fsys, params)
+	_, _, err := collectMediaContent("/home/Music", fsys, params)
 	assert.ErrorRaised(t, "Should raise error", err, true)
 }
 
-func TestCollectMediaContentFile(t *testing.T) {
-	modTime := time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC)
-	fdate := time.Date(2022, 3, 26, 0, 0, 0, 0, time.UTC)
-	tdate := time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC)
-	params := Params{fdate: fdate, tdate: tdate, ratio: 100, maxDuration: 60}
-	data := mocks.CreateData(50)
+func TestCollectMediaContentDuration(t *testing.T) {
+	modTime := time.Date(2020, 3, 26, 0, 0, 0, 0, time.UTC)
+	fdate := time.Date(2000, 3, 26, 0, 0, 0, 0, time.UTC)
+	tdate := time.Date(2030, 3, 26, 0, 0, 0, 0, time.UTC)
+	params := Params{fdate: fdate, tdate: tdate, ratio: 100, minDuration: 30, maxDuration: 60}
 	fsys := fstest.MapFS{
-		"home/Music/track1.mp4": {
-			Data:    data,
+		"should_be_selected.mp4": {
+			Data:    mocks.CreateData(50),
+			Mode:    0755,
+			ModTime: modTime,
+		},
+		"too_short.mp4": {
+			Data:    mocks.CreateData(29),
+			Mode:    0755,
+			ModTime: modTime,
+		},
+		"too_long.mp4": {
+			Data:    mocks.CreateData(65),
 			Mode:    0755,
 			ModTime: modTime,
 		},
 	}
-	items, summary, _ := collectMediaContent("home/Music", fsys, params)
-	assert.Equal(t, "Should select one file", items[0].Name, "track1.mp4")
+	items, summary, _ := collectMediaContent("/home/Music", fsys, params)
+	assert.Equal(t, "Should select one file", items[0].Name, "should_be_selected.mp4")
+	assert.Equal(t, "Should select one file", summary.totalSelected, 1)
+}
+
+func TestCollectMediaContentDateFilter(t *testing.T) {
+	fdate := time.Date(2022, 3, 26, 0, 0, 0, 0, time.UTC)
+	tdate := time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC)
+	params := Params{fdate: fdate, tdate: tdate, ratio: 100, minDuration: 0, maxDuration: math.MaxInt32}
+	fsys := fstest.MapFS{
+		"should_be_selected.mp4": {
+			Data:    mocks.CreateData(120),
+			Mode:    0755,
+			ModTime: time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC),
+		},
+		"too_old.mp4": {
+			Data:    mocks.CreateData(180),
+			Mode:    0755,
+			ModTime: time.Date(2022, 3, 25, 0, 0, 0, 0, time.UTC),
+		},
+		"too_recent.mp4": {
+			Data:    mocks.CreateData(180),
+			Mode:    0755,
+			ModTime: time.Date(2024, 3, 27, 0, 0, 0, 0, time.UTC),
+		},
+	}
+	items, summary, _ := collectMediaContent("/home/Music", fsys, params)
+	assert.Equal(t, "Should select one file", items[0].Name, "should_be_selected.mp4")
+	assert.Equal(t, "Should select one file", summary.totalSelected, 1)
+}
+
+func TestCollectMediaContentSkipFilter(t *testing.T) {
+	modTime := time.Date(2020, 3, 26, 0, 0, 0, 0, time.UTC)
+	fdate := time.Date(2000, 3, 26, 0, 0, 0, 0, time.UTC)
+	tdate := time.Date(2030, 3, 26, 0, 0, 0, 0, time.UTC)
+	params := Params{fdate: fdate, tdate: tdate, ratio: 100, minDuration: 0, maxDuration: math.MaxInt32, skipF: []string{"bad_artist"}}
+	fsys := fstest.MapFS{
+		"good_artist/should_be_selected.mp4": {
+			Data:    mocks.CreateData(140),
+			Mode:    0755,
+			ModTime: modTime,
+		},
+		"bad_artist/ignored.mp4": {
+			Data:    mocks.CreateData(150),
+			Mode:    0755,
+			ModTime: modTime,
+		},
+		"also_selected.mp4": {
+			Data:    mocks.CreateData(160),
+			Mode:    0755,
+			ModTime: modTime,
+		},
+	}
+	_, summary, _ := collectMediaContent("/home/Music", fsys, params)
+	assert.Equal(t, "Should select two files", summary.totalSelected, 2)
+}
+
+func TestCollectMediaContentIncludeFilter(t *testing.T) {
+	modTime := time.Date(2020, 3, 26, 0, 0, 0, 0, time.UTC)
+	fdate := time.Date(2000, 3, 26, 0, 0, 0, 0, time.UTC)
+	tdate := time.Date(2030, 3, 26, 0, 0, 0, 0, time.UTC)
+	params := Params{fdate: fdate, tdate: tdate, ratio: 100, minDuration: 0, maxDuration: math.MaxInt32, includeF: []string{"good_artist"}}
+	fsys := fstest.MapFS{
+		"good_artist/should_be_selected.mp4": {
+			Data:    mocks.CreateData(140),
+			Mode:    0755,
+			ModTime: modTime,
+		},
+		"bad_artist/ignored.mp4": {
+			Data:    mocks.CreateData(150),
+			Mode:    0755,
+			ModTime: modTime,
+		},
+		"also_selected.mp4": {
+			Data:    mocks.CreateData(160),
+			Mode:    0755,
+			ModTime: modTime,
+		},
+	}
+	items, summary, _ := collectMediaContent("/home/Music", fsys, params)
+	assert.Equal(t, "Should select one file", items[0].Name, "should_be_selected.mp4")
 	assert.Equal(t, "Should select one file", summary.totalSelected, 1)
 }

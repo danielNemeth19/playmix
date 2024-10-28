@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 
 	"github.com/alfg/mp4"
-	"github.com/alfg/mp4/atom"
 )
 
 // TODO: let's sanitize track title by cutting the vlc record prefix
@@ -217,8 +216,6 @@ func getDuration(fsys fs.FS, p string) (duration float64, err error) {
 	timeScale := float64(mp4.Moov.Mvhd.Timescale)
 
 	duration = rawDuration / timeScale
-	durS := atom.GetDurationString(mp4.Moov.Mvhd.Duration, mp4.Moov.Mvhd.Timescale)
-	fmt.Printf("Duration is: %s\n", durS)
 	return duration, nil
 }
 

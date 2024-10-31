@@ -3,24 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"time"
 )
-
-func randomizePlaylist(playlist []MediaItem, stabilizer int) {
-	if stabilizer > len(playlist) {
-		rand.Shuffle(len(playlist), func(i, j int) {
-			playlist[i], playlist[j] = playlist[j], playlist[i]
-		})
-	} else {
-		rand.Shuffle(len(playlist), func(i, j int) {
-			if i%stabilizer != 0 {
-				playlist[i], playlist[j] = playlist[j], playlist[i]
-			}
-		})
-	}
-}
 
 func main() {
 	defer TimeTrack(time.Now(), "main")

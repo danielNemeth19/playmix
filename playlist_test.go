@@ -259,7 +259,10 @@ func TestCollectMediaContentSkipFilter(t *testing.T) {
 			ModTime: modTime,
 		},
 	}
-	_, summary, _ := collectMediaContent("/home/Music", fsys, params)
+	items, summary, _ := collectMediaContent("/home/Music", fsys, params)
+	assert.Equal(t, "Id should be 0 for first item", items[0].Id, 0)
+	assert.Equal(t, "Id should be 1 for second item", items[1].Id, 1)
+	assert.Equal(t, "Should select two files", summary.totalSelected, 2)
 	assert.Equal(t, "Should select two files", summary.totalSelected, 2)
 }
 
@@ -279,7 +282,7 @@ func TestCollectMediaContentIncludeFilter(t *testing.T) {
 			Mode:    0755,
 			ModTime: modTime,
 		},
-		"also_selected.mp4": {
+		"also_not_selected.mp4": {
 			Data:    mocks.CreateData(160),
 			Mode:    0755,
 			ModTime: modTime,
@@ -288,4 +291,25 @@ func TestCollectMediaContentIncludeFilter(t *testing.T) {
 	items, summary, _ := collectMediaContent("/home/Music", fsys, params)
 	assert.Equal(t, "Should select one file", items[0].Name, "should_be_selected.mp4")
 	assert.Equal(t, "Should select one file", summary.totalSelected, 1)
+}
+
+func TestCollectMediaContentSelector(t *testing.T){
+	fdate := time.Date(2000, 3, 26, 0, 0, 0, 0, time.UTC)
+	tdate := time.Date(2030, 3, 26, 0, 0, 0, 0, time.UTC)
+	params := Params{fdate: fdate, tdate: tdate, ratio: 0, minDuration: 0, maxDuration: math.MaxInt32}
+    fsys := fstest.MapFS{
+        "track_01.mp4": {
+            Data: mocks.CreateData(100),
+            Mode: 0755,
+            ModTime: time.Now(),
+        },
+        "track_02.mp4": {
+            Data: mocks.CreateData(100),
+            Mode: 0755,
+            ModTime: time.Now(),
+        },
+    }
+	items, summary, _ := collectMediaContent("/home/Music", fsys, params)
+	assert.Equal(t, "Should not select anything", len(items), 0)
+	assert.Equal(t, "Should not select anything", summary.totalSelected, 0)
 }

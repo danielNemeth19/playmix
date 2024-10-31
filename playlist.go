@@ -169,6 +169,7 @@ func collectMediaContent(p string, fsys fs.FS, params Params) ([]MediaItem, Summ
 				}
 			}
 			summary.totalScanned++
+            idx++
 			if summary.totalScanned%500 == 0 {
 				fmt.Printf("Processed %d files\n", summary.totalScanned)
 			}
@@ -217,6 +218,20 @@ func getDuration(fsys fs.FS, p string) (duration float64, err error) {
 
 	duration = rawDuration / timeScale
 	return duration, nil
+}
+
+func randomizePlaylist(playlist []MediaItem, stabilizer int) {
+	if stabilizer > len(playlist) {
+		rand.Shuffle(len(playlist), func(i, j int) {
+			playlist[i], playlist[j] = playlist[j], playlist[i]
+		})
+	} else {
+		rand.Shuffle(len(playlist), func(i, j int) {
+			if i%stabilizer != 0 {
+				playlist[i], playlist[j] = playlist[j], playlist[i]
+			}
+		})
+	}
 }
 
 func writePlayList(s any) error {

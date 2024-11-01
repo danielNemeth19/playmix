@@ -4,10 +4,20 @@ import (
 	"math"
 	"playmix/internal/assert"
 	"playmix/internal/mocks"
+	"strconv"
 	"testing"
 	"testing/fstest"
 	"time"
 )
+
+func TestGetRealRation(t *testing.T) {
+	s := Summarizer{
+		totalScanned:  100,
+		totalSelected: 10,
+	}
+	got := s.getRealRatio()
+	assert.Equal(t, "Should be 10%", got, 10)
+}
 
 func TestDateFilterIn(t *testing.T) {
 	params := Params{
@@ -106,14 +116,24 @@ func TestIsIncludedFalseIfFolderNotWithinRoot(t *testing.T) {
 	assert.Equal(t, "Should not be included", got, false)
 }
 
-func TestPlaylistGetDirRoot(t *testing.T) {
+func TestPlaylistGetRelativeDir(t *testing.T) {
 	root := []string{"home", "user", "Music"}
 	expected := "Music"
 	item := MediaItem{
 		AbsPath: "/home/user/Music/Track01.mp4",
 	}
-	got := item.getRelativeDir(root)
-	assert.Equal(t, "Should get relative dir for file in root", got, expected)
+	item.getRelativeDir(root)
+	assert.Equal(t, "Should get relative dir for file in root", item.Dir, expected)
+}
+
+func TestPlaylistGetRelativeDirSubfolder(t *testing.T) {
+	root := []string{"home", "user", "Music"}
+	expected := "Music/Genre/Artist/Album"
+	item := MediaItem{
+		AbsPath: "/home/user/Music/Genre/Artist/Album/Track01.mp4",
+	}
+	item.getRelativeDir(root)
+	assert.Equal(t, "Should get relative dir for file in subfolder", item.Dir, expected)
 }
 
 func TestGetDuration(t *testing.T) {
@@ -159,14 +179,11 @@ func TestGetDurationErrorOpen(t *testing.T) {
 	assert.ErrorRaised(t, "Should raise error if file doesn't exists", err, true)
 }
 
-func TestPlaylistGetDirSubFolders(t *testing.T) {
-	root := []string{"home", "user", "Music"}
-	expected := "Genre/Artist/Album"
-	item := MediaItem{
-		AbsPath: "/home/user/Music/Genre/Artist/Album/Track01.mp4",
-	}
-	got := item.getRelativeDir(root)
-	assert.Equal(t, "Should get relative dir for file in subfolder", got, expected)
+func TestGetDurationErrorStat(t *testing.T) {
+	fsys := mocks.FakeSys{}
+	duration, err := getDuration(fsys, "stat_error_test")
+	assert.Equal(t, "Should return duration as 0", duration, 0)
+	assert.ErrorRaised(t, "Should return faked error", err, true)
 }
 
 func TestCollectMediaContentRaisesErrorNonMediaFile(t *testing.T) {
@@ -293,23 +310,57 @@ func TestCollectMediaContentIncludeFilter(t *testing.T) {
 	assert.Equal(t, "Should select one file", summary.totalSelected, 1)
 }
 
-func TestCollectMediaContentSelector(t *testing.T){
+func TestCollectMediaContentSelector(t *testing.T) {
 	fdate := time.Date(2000, 3, 26, 0, 0, 0, 0, time.UTC)
 	tdate := time.Date(2030, 3, 26, 0, 0, 0, 0, time.UTC)
 	params := Params{fdate: fdate, tdate: tdate, ratio: 0, minDuration: 0, maxDuration: math.MaxInt32}
-    fsys := fstest.MapFS{
-        "track_01.mp4": {
-            Data: mocks.CreateData(100),
-            Mode: 0755,
-            ModTime: time.Now(),
-        },
-        "track_02.mp4": {
-            Data: mocks.CreateData(100),
-            Mode: 0755,
-            ModTime: time.Now(),
-        },
-    }
+	fsys := fstest.MapFS{
+		"track_01.mp4": {
+			Data:    mocks.CreateData(100),
+			Mode:    0755,
+			ModTime: time.Now(),
+		},
+		"track_02.mp4": {
+			Data:    mocks.CreateData(100),
+			Mode:    0755,
+			ModTime: time.Now(),
+		},
+	}
 	items, summary, _ := collectMediaContent("/home/Music", fsys, params)
 	assert.Equal(t, "Should not select anything", len(items), 0)
 	assert.Equal(t, "Should not select anything", summary.totalSelected, 0)
+}
+
+func _createMediaItems(length int) (items []MediaItem, indices []int) {
+	for i := 0; i < length; {
+		trackName := "track_" + strconv.Itoa(i) + ".mp4"
+		items = append(items, MediaItem{Name: trackName, Id: i})
+		indices = append(indices, i)
+		i++
+	}
+	return
+}
+
+func TestRandomizePlaylistWithoutStabilizer(t *testing.T) {
+	mItems, indices := _createMediaItems(100)
+	randomizePlaylist(mItems, len(mItems)+1)
+
+	var newIndices []int
+	for _, item := range mItems {
+		newIndices = append(newIndices, item.Id)
+	}
+	// fmt.Println(newIndices)
+	assert.NotEqualSlice(t, "Indices should be different", newIndices, indices)
+}
+
+func TestRandomizePlaylistWithStabilizer(t *testing.T) {
+	mItems, indices := _createMediaItems(100)
+	randomizePlaylist(mItems, 2)
+
+	var newIndices []int
+	for _, item := range mItems {
+		newIndices = append(newIndices, item.Id)
+	}
+	// fmt.Println(newIndices)
+	assert.NotEqualSlice(t, "Indices should be different", newIndices, indices)
 }

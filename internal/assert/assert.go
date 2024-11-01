@@ -27,3 +27,10 @@ func EqualSlice[T comparable](t *testing.T, name string, actual, expected []T){
 		t.Errorf("Failed %s: got %v, expected %v\n", name, actual, expected)
     }
 }
+
+func NotEqualSlice[T comparable](t *testing.T, name string, actual, expected []T){
+    t.Helper()
+    if slices.Equal(actual, expected) {
+		t.Errorf("Failed %s: got %v, expected %v\n", name, actual, expected)
+    }
+}

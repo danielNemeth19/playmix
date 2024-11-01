@@ -23,14 +23,14 @@ type MediaItem struct {
 }
 
 // TODO: This dirName could be used writing a proper title
-func (m MediaItem) getRelativeDir(rootParts []string) string {
+func (m *MediaItem) getRelativeDir(rootParts []string) {
 	fileParts := getPathParts(m.AbsPath)
 
 	if len(fileParts) == len(rootParts) {
-		return filepath.Base(filepath.Dir(m.AbsPath))
+		m.Dir = filepath.Base(filepath.Dir(m.AbsPath))
 	} else {
-		relativeParts := fileParts[len(rootParts):]
-		return filepath.Join(relativeParts...)
+		relativeParts := fileParts[len(rootParts)-1:]
+		m.Dir = filepath.Join(relativeParts...)
 	}
 }
 
@@ -162,14 +162,14 @@ func collectMediaContent(p string, fsys fs.FS, params Params) ([]MediaItem, Summ
 				summary.dBucket.allocate(duration)
 				if duration > float64(params.minDuration) && duration < float64(params.maxDuration) {
 					item := MediaItem{Id: idx, AbsPath: absPath, Name: d.Name(), Duration: duration}
-					item.Dir = item.getRelativeDir(rootParts)
+					item.getRelativeDir(rootParts)
 					items = append(items, item)
 					summary.totalDuration += duration
 					summary.totalSelected++
 				}
 			}
 			summary.totalScanned++
-            idx++
+			idx++
 			if summary.totalScanned%500 == 0 {
 				fmt.Printf("Processed %d files\n", summary.totalScanned)
 			}

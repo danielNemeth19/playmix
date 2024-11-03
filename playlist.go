@@ -46,12 +46,12 @@ func (s Summarizer) getRealRatio() float64 {
 	return float64(s.totalSelected) / float64(s.totalScanned) * 100
 }
 
-func (s Summarizer) getData() {
-	fmt.Printf("Total scanned: %d\n", s.totalScanned)
-	fmt.Printf("Duration distribution:\n")
-	s.dBucket.summarize()
-	fmt.Printf("Total duration is: %f sec -- (%f) minutes\n", s.totalDuration, s.totalDuration/60)
-	fmt.Printf("Total selected: %d -- required ratio: %d -- got: %.2f%%\n", s.totalSelected, s.ratio, s.getRealRatio())
+func (s Summarizer) getData(w io.Writer) {
+	fmt.Fprintf(w, "Total scanned: %d\n", s.totalScanned)
+	fmt.Fprintf(w, "Duration distribution:\n")
+	s.dBucket.summarize(w)
+	fmt.Fprintf(w, "Total duration is: %f sec -- (%f) minutes\n", s.totalDuration, s.totalDuration/60)
+	fmt.Fprintf(w, "Total selected: %d -- required ratio: %d -- got: %.2f%%\n", s.totalSelected, s.ratio, s.getRealRatio())
 }
 
 type DurationBucket struct {
@@ -83,14 +83,14 @@ func (d *DurationBucket) allocate(duration float64) {
 	}
 }
 
-func (d *DurationBucket) summarize() {
-	fmt.Printf("Bucket <5 seconds: %d\n", d.Dur0_5)
-	fmt.Printf("Bucket 5-10 seconds: %d\n", d.Dur5_10)
-	fmt.Printf("Bucket 10-30 seconds: %d\n", d.Dur10_30)
-	fmt.Printf("Bucket 30-60 seconds: %d\n", d.Dur30_60)
-	fmt.Printf("Bucket 60-180 seconds: %d\n", d.Dur60_180)
-	fmt.Printf("Bucket 180-240 seconds: %d\n", d.Dur180_240)
-	fmt.Printf("Bucket 240< seconds: %d\n", d.DurOver240)
+func (d *DurationBucket) summarize(w io.Writer) {
+	fmt.Fprintf(w, "Bucket <5 seconds: %d\n", d.Dur0_5)
+	fmt.Fprintf(w, "Bucket 5-10 seconds: %d\n", d.Dur5_10)
+	fmt.Fprintf(w, "Bucket 10-30 seconds: %d\n", d.Dur10_30)
+	fmt.Fprintf(w, "Bucket 30-60 seconds: %d\n", d.Dur30_60)
+	fmt.Fprintf(w, "Bucket 60-180 seconds: %d\n", d.Dur60_180)
+	fmt.Fprintf(w, "Bucket 180-240 seconds: %d\n", d.Dur180_240)
+	fmt.Fprintf(w, "Bucket 240< seconds: %d\n", d.DurOver240)
 }
 
 func selector(ratio int) bool {

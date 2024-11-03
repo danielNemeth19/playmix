@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"math"
 	"playmix/internal/assert"
 	"playmix/internal/mocks"
 	"strconv"
+	"strings"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -17,6 +19,35 @@ func TestGetRealRation(t *testing.T) {
 	}
 	got := s.getRealRatio()
 	assert.Equal(t, "Should be 10%", got, 10)
+}
+
+func TestGetData(t *testing.T) {
+	d := DurationBucket{
+		Dur0_5:     1,
+		Dur5_10:    2,
+		Dur10_30:   3,
+		Dur30_60:   4,
+		Dur60_180:  5,
+		Dur180_240: 6,
+		DurOver240: 7,
+	}
+	s := Summarizer{totalScanned: 100, totalSelected: 100, dBucket: d, totalDuration: 300, ratio: 100}
+	var buf bytes.Buffer
+	s.getData(&buf)
+	res := buf.String()
+	splits := strings.Split(res, "\n")
+
+	assert.Equal(t, "Should be equal", splits[0], "Total scanned: 100")
+	assert.Equal(t, "Should be equal", splits[1], "Duration distribution:")
+	assert.Equal(t, "Should be equal", splits[2], "Bucket <5 seconds: 1")
+	assert.Equal(t, "Should be equal", splits[3], "Bucket 5-10 seconds: 2")
+	assert.Equal(t, "Should be equal", splits[4], "Bucket 10-30 seconds: 3")
+	assert.Equal(t, "Should be equal", splits[5], "Bucket 30-60 seconds: 4")
+	assert.Equal(t, "Should be equal", splits[6], "Bucket 60-180 seconds: 5")
+	assert.Equal(t, "Should be equal", splits[7], "Bucket 180-240 seconds: 6")
+	assert.Equal(t, "Should be equal", splits[8], "Bucket 240< seconds: 7")
+	assert.Equal(t, "Should be equal", splits[9], "Total duration is: 300.000000 sec -- (5.000000) minutes")
+	assert.Equal(t, "Should be equal", splits[10], "Total selected: 100 -- required ratio: 100 -- got: 100.00%")
 }
 
 func TestDateFilterIn(t *testing.T) {
@@ -186,6 +217,15 @@ func TestGetDurationErrorStat(t *testing.T) {
 	assert.ErrorRaised(t, "Should return faked error", err, true)
 }
 
+func TestCollectMediaContentRaisesWalkError(t *testing.T) {
+	fdate := time.Date(2022, 3, 26, 0, 0, 0, 0, time.UTC)
+	tdate := time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC)
+	f := mocks.FakeSys{}
+	params := Params{fdate: fdate, tdate: tdate, ratio: 100}
+	_, _, err := collectMediaContent("/home/Music", f, params)
+	assert.ErrorRaised(t, "Should raise error", err, true)
+}
+
 func TestCollectMediaContentRaisesErrorNonMediaFile(t *testing.T) {
 	modTime := time.Date(2023, 3, 26, 0, 0, 0, 0, time.UTC)
 	fdate := time.Date(2022, 3, 26, 0, 0, 0, 0, time.UTC)
@@ -280,7 +320,6 @@ func TestCollectMediaContentSkipFilter(t *testing.T) {
 	assert.Equal(t, "Id should be 0 for first item", items[0].Id, 0)
 	assert.Equal(t, "Id should be 1 for second item", items[1].Id, 1)
 	assert.Equal(t, "Should select two files", summary.totalSelected, 2)
-	assert.Equal(t, "Should select two files", summary.totalSelected, 2)
 }
 
 func TestCollectMediaContentIncludeFilter(t *testing.T) {
@@ -341,26 +380,74 @@ func _createMediaItems(length int) (items []MediaItem, indices []int) {
 	return
 }
 
-func TestRandomizePlaylistWithoutStabilizer(t *testing.T) {
-	mItems, indices := _createMediaItems(100)
-	randomizePlaylist(mItems, len(mItems)+1)
+func _checkRandomness(original, randomized []int) (count int) {
+	for i := range original {
+		if original[i] == randomized[i] {
+			count++
+		}
+	}
+	return
+}
 
-	var newIndices []int
-	for _, item := range mItems {
+func _getIndices(items []MediaItem) (newIndices []int) {
+	for _, item := range items {
 		newIndices = append(newIndices, item.Id)
 	}
-	// fmt.Println(newIndices)
+	return
+}
+
+func TestRandomizePlaylistWithoutStabilizer(t *testing.T) {
+	mItems, indices := _createMediaItems(30)
+	randomizePlaylist(mItems, len(indices)+1)
+
+	newIndices := _getIndices(mItems)
 	assert.NotEqualSlice(t, "Indices should be different", newIndices, indices)
 }
 
 func TestRandomizePlaylistWithStabilizer(t *testing.T) {
-	mItems, indices := _createMediaItems(100)
+	mItems, indices := _createMediaItems(30)
 	randomizePlaylist(mItems, 2)
 
-	var newIndices []int
-	for _, item := range mItems {
-		newIndices = append(newIndices, item.Id)
-	}
-	// fmt.Println(newIndices)
+	newIndices := _getIndices(mItems)
 	assert.NotEqualSlice(t, "Indices should be different", newIndices, indices)
+}
+
+func TestRandomizePlaylistStabilizerLessRandom(t *testing.T) {
+	nonStabilized, idxNonStabilized := _createMediaItems(100)
+	randomizePlaylist(nonStabilized, len(idxNonStabilized)+1)
+	newIndiecesNonStabilized := _getIndices(nonStabilized)
+
+	stabilized, idxStabilized := _createMediaItems(100)
+	randomizePlaylist(stabilized, 2)
+	newIndicesStablized := _getIndices(stabilized)
+
+	assert.NotEqualSlice(t, "Indices should be different", newIndiecesNonStabilized, idxNonStabilized)
+	assert.NotEqualSlice(t, "Indices should be different", newIndicesStablized, idxStabilized)
+
+	notMovedNonStabilized := _checkRandomness(idxNonStabilized, newIndiecesNonStabilized)
+	notMovedStabilized := _checkRandomness(idxStabilized, newIndicesStablized)
+	stabilizedLessRandom := notMovedStabilized > notMovedNonStabilized
+	assert.Equal(t, "Randomness of not stabilized shuffle should be higher", stabilizedLessRandom, true)
+}
+
+func TestBuildPlaylist(t *testing.T) {
+	items := []MediaItem{
+		{
+			AbsPath:  "/home/Music/track.mp4",
+			Name:     "track.mp4",
+			Duration: 180,
+			Id:       0,
+		},
+	}
+	pl := buildPlayList(items)
+	assert.Equal(t, "Should have correct Xmlns value", pl.Xmlns, "http://xspf.org/ns/0/")
+	assert.Equal(t, "Should have correct XmlnsVlc value", pl.XmlnsVlc, "http://www.videolan.org/vlc/playlist/ns/0/")
+	assert.Equal(t, "Should have correct version", pl.Version, "1")
+
+	assert.Equal(t, "Should have one track", len(pl.Tl.Tracks), 1)
+	assert.Equal(t, "Should have correct extension application", pl.Tl.Tracks[0].Ext.Application, "http://www.videolan.org/vlc/playlist/0")
+	assert.Equal(t, "Should have correct Id", pl.Tl.Tracks[0].Ext.Id, 0)
+	assert.Equal(t, "Should have correct absolute path", pl.Tl.Tracks[0].Location, "/home/Music/track.mp4")
+	assert.Equal(t, "Should have correct title", pl.Tl.Tracks[0].Title, "track.mp4")
+	assert.Equal(t, "Should have correct duration", pl.Tl.Tracks[0].Duration, 180)
 }

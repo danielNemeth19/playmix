@@ -5,31 +5,25 @@ import (
 	"time"
 )
 
-// type File interface {
-// Stat() (FileInfo, error)
-// Read([]byte) (int, error)
-// Close() error
-// }
-
 type FakeFile struct{}
 
 func (f FakeFile) Stat() (fs.FileInfo, error) {
-    error := fs.PathError{Op: "faked stat", Path: "/dummy/file", Err: fs.ErrInvalid}
-    return nil, &error
+	error := fs.PathError{Op: "faked stat", Path: "/dummy/file", Err: fs.ErrInvalid}
+	return nil, &error
 }
 
-func (f FakeFile) Read([]byte) (int, error){
-    return 10, nil
+func (f FakeFile) Read([]byte) (int, error) {
+	return 10, nil
 }
 
 func (f FakeFile) Close() error {
-    return nil
+	return nil
 }
 
 type FakeSys struct{}
 
 func (f FakeSys) Open(name string) (fs.File, error) {
-    return FakeFile{}, nil
+	return FakeFile{}, nil
 }
 
 type FakeFileInfo struct {

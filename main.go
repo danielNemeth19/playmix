@@ -39,5 +39,5 @@ func main() {
 		log.Fatalf("Error during writing playlist file: %s\n", err)
 	}
 	// TODO: maybe make duration bucket summary optional too
-	summary.getData()
+	summary.getData(os.Stdout)
 }

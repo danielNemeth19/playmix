@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"math"
 	"math/rand"
-	"os"
 	"path/filepath"
 
 	"github.com/alfg/mp4"
@@ -234,19 +233,13 @@ func randomizePlaylist(playlist []MediaItem, stabilizer int) {
 	}
 }
 
-func writePlayList(s any) error {
-	outFile, err := os.Create("temp_new.xspf")
-	if err != nil {
-		return fmt.Errorf("Error creating file: %w\n", err)
-	}
-	defer outFile.Close()
-
-	_, err = outFile.WriteString(xml.Header)
+func writePlayList(s any, w io.Writer) error {
+	xmlH := []byte(xml.Header)
+	_, err := w.Write(xmlH)
 	if err != nil {
 		return fmt.Errorf("Error writing header: %w\n", err)
 	}
-
-	encoder := xml.NewEncoder(outFile)
+	encoder := xml.NewEncoder(w)
 	encoder.Indent("", "\t")
 	err = encoder.Encode(&s)
 	if err != nil {

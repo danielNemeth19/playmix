@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/xml"
+	"fmt"
 	"math"
 	"playmix/internal/assert"
 	"playmix/internal/mocks"
@@ -428,6 +430,36 @@ func TestRandomizePlaylistStabilizerLessRandom(t *testing.T) {
 	notMovedStabilized := _checkRandomness(idxStabilized, newIndicesStablized)
 	stabilizedLessRandom := notMovedStabilized > notMovedNonStabilized
 	assert.Equal(t, "Randomness of not stabilized shuffle should be higher", stabilizedLessRandom, true)
+}
+
+func TestWritePlaylist(t *testing.T) {
+	var buf bytes.Buffer
+	items := []MediaItem{
+		{
+			AbsPath:  "/home/Music/track.mp4",
+			Name:     "track.mp4",
+			Duration: 180,
+			Id:       0,
+		},
+	}
+	originalPl := buildPlayList(items)
+	writePlayList(originalPl, &buf)
+
+	var pl PlayList
+	xml.Unmarshal(buf.Bytes(), &pl)
+	fmt.Println(pl)
+	assert.Equal(t, "Should have correct Xmlns value", pl.Xmlns, "http://xspf.org/ns/0/")
+	fmt.Println(pl.XmlnsVlc)
+	fmt.Println(pl.Version)
+	fmt.Println(pl.Tl.Tracks[0].Location)
+	// assert.Equal(t, "Should have correct XmlnsVlc value", pl.XmlnsVlc, "http://www.videolan.org/vlc/playlist/ns/0/")
+	// assert.Equal(t, "Should have correct version", pl.Version, "1")
+
+	// assert.Equal(t, "Should have one track", len(pl.Tl.Tracks), 1)
+	// assert.Equal(t, "Should have correct extension application", pl.Tl.Tracks[0].Ext.Application, "http://www.videolan.org/vlc/playlist/0")
+	// assert.Equal(t, "Should have correct Id", pl.Tl.Tracks[0].Ext.Id, 0)
+	// assert.Equal(t, "Should have correct absolute path", pl.Tl.Tracks[0].Location, "/home/Music/track.mp4")
+	// assert.Equal(t, "Should have correct title", pl.Tl.Tracks[0].Title, "track.mp4")
 }
 
 func TestBuildPlaylist(t *testing.T) {

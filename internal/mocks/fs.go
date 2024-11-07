@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"errors"
 	"io/fs"
 	"time"
 )
@@ -92,4 +93,11 @@ func CreateFakeDirEntry(name string, isDir bool, modTime time.Time) fs.DirEntry 
 		isDir:    isDir,
 	}
 	return fd
+}
+
+type FakeWriter struct{}
+
+func (fw FakeWriter) Write(p []byte) (n int, err error) {
+	error := errors.New("fake error for io.Writer Write function")
+	return 0, error
 }

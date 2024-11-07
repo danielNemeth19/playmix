@@ -2,8 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/xml"
-	"fmt"
 	"math"
 	"playmix/internal/assert"
 	"playmix/internal/mocks"
@@ -444,22 +442,27 @@ func TestWritePlaylist(t *testing.T) {
 	}
 	originalPl := buildPlayList(items)
 	writePlayList(originalPl, &buf)
+	output := strings.Split(buf.String(), "\n")
+	assert.Equal(t, "Output should be 14 rows", len(output), 14)
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[0]), "<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[1]), "<playlist xmlns=\"http://xspf.org/ns/0/\" xmlns:vlc=\"http://www.videolan.org/vlc/playlist/ns/0/\" version=\"1\">")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[2]), "<title></title>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[3]), "<trackList>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[4]), "<track>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[5]), "<location>/home/Music/track.mp4</location>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[6]), "<title>track.mp4</title>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[7]), "<duration>180</duration>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[8]), "<extension application=\"http://www.videolan.org/vlc/playlist/0\">")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[9]), "<vlc:id>0</vlc:id>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[10]), "</extension>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[11]), "</track>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[12]), "</trackList>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[13]), "</playlist>")
+}
 
-	var pl PlayList
-	xml.Unmarshal(buf.Bytes(), &pl)
-	fmt.Println(pl)
-	assert.Equal(t, "Should have correct Xmlns value", pl.Xmlns, "http://xspf.org/ns/0/")
-	fmt.Println(pl.XmlnsVlc)
-	fmt.Println(pl.Version)
-	fmt.Println(pl.Tl.Tracks[0].Location)
-	// assert.Equal(t, "Should have correct XmlnsVlc value", pl.XmlnsVlc, "http://www.videolan.org/vlc/playlist/ns/0/")
-	// assert.Equal(t, "Should have correct version", pl.Version, "1")
-
-	// assert.Equal(t, "Should have one track", len(pl.Tl.Tracks), 1)
-	// assert.Equal(t, "Should have correct extension application", pl.Tl.Tracks[0].Ext.Application, "http://www.videolan.org/vlc/playlist/0")
-	// assert.Equal(t, "Should have correct Id", pl.Tl.Tracks[0].Ext.Id, 0)
-	// assert.Equal(t, "Should have correct absolute path", pl.Tl.Tracks[0].Location, "/home/Music/track.mp4")
-	// assert.Equal(t, "Should have correct title", pl.Tl.Tracks[0].Title, "track.mp4")
+func TestWritePlayListWriteError(t *testing.T) {
+    err := writePlayList("", mocks.FakeWriter{})
+    assert.ErrorRaised(t, "Error should be raised", err, true)
 }
 
 func TestBuildPlaylist(t *testing.T) {

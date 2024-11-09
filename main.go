@@ -28,12 +28,12 @@ func main() {
 		}
 		fmt.Printf("Extensions: %v\n", extensions)
 	}
-	content, summary, err := collectMediaContent(root, fsys, *params)
-	if err != nil {
-		log.Fatalf("Error during getting files: %s\n", err)
-	}
-	randomizePlaylist(content, params.stabilizer)
-	tl := buildPlayList(content)
+	// content, summary, err := collectMediaContent(root, fsys, *params)
+	// if err != nil {
+	// log.Fatalf("Error during getting files: %s\n", err)
+	// }
+	// randomizePlaylist(content, params.stabilizer)
+	// tl := buildPlayList(content)
 
 	outfile, err := createFile(params.fileName)
 	if err != nil {
@@ -41,10 +41,11 @@ func main() {
 	}
 	defer outfile.Close()
 
-	err = writePlayList(tl, outfile)
-	if err != nil {
-		log.Fatalf("Error during writing playlist file: %s\n", err)
-	}
+	// err = writePlayList(tl, outfile)
+	// if err != nil {
+	// log.Fatalf("Error during writing playlist file: %s\n", err)
+	// }
 	// TODO: maybe make duration bucket summary optional too
-	summary.getData(os.Stdout)
+	// summary.getData(os.Stdout)
+	test()
 }

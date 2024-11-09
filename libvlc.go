@@ -1,21 +1,21 @@
 package main
 
 import (
-    "log"
+	"log"
 
-    vlc "github.com/adrg/libvlc-go/v3"
+	vlc "github.com/adrg/libvlc-go/v3"
 )
 
 func test() {
-    // Initialize libVLC. Additional command line arguments can be passed in
+	// Initialize libVLC. Additional command line arguments can be passed in
 	// to libVLC by specifying them in the Init function.
-	if err := vlc.Init("--no-video", "--quiet"); err != nil {
+	if err := vlc.Init("--fullscreen"); err != nil {
 		log.Fatal(err)
 	}
 	defer vlc.Release()
 
 	// Create a new player.
-	player, err := vlc.NewPlayer()
+	player, err := vlc.NewListPlayer()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,11 +24,19 @@ func test() {
 		player.Release()
 	}()
 
-	media, err := player.LoadMediaFromPath("/home/daniel/Videos/video.mp4")
+	list, err := vlc.NewMediaList()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer media.Release()
+	defer list.Release()
+
+	err = list.AddMediaFromPath("pl.xspf")
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err = player.SetMediaList(list); err != nil {
+		log.Fatal(err)
+	}
 
 	// Retrieve player event manager.
 	manager, err := player.EventManager()

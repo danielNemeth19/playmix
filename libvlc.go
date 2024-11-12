@@ -6,7 +6,7 @@ import (
 	vlc "github.com/adrg/libvlc-go/v3"
 )
 
-func test() {
+func playMix() {
 	// Initialize libVLC. Additional command line arguments can be passed in
 	// to libVLC by specifying them in the Init function.
 	if err := vlc.Init("--fullscreen"); err != nil {
@@ -14,7 +14,7 @@ func test() {
 	}
 	defer vlc.Release()
 
-	// Create a new player.
+	// Create a new list player.
 	player, err := vlc.NewListPlayer()
 	if err != nil {
 		log.Fatal(err)

@@ -38,6 +38,18 @@ func TestParamsParse(t *testing.T) {
 	assert.EqualSlice(t, "Should return multiple folders in slice", parsed, expected)
 }
 
+func TestParamsSetFileName(t *testing.T) {
+	p := Params{}
+	p.setFileName("myplaylist")
+	assert.Equal(t, "Should set file name correctly", "myplaylist.xspf", p.fileName)
+}
+
+func TestParamsSetFileNameError(t *testing.T) {
+	p := Params{}
+	err := p.setFileName("bad_name.xspf")
+	assert.ErrorRaised(t, "File param with extension specified raises error", err, true)
+}
+
 func TestParamsSetDateParams(t *testing.T) {
 	p := Params{}
 	p.setDateParams("20230326", "20240326")

@@ -461,8 +461,8 @@ func TestWritePlaylist(t *testing.T) {
 }
 
 func TestWritePlayListWriteError(t *testing.T) {
-    err := writePlayList("", mocks.FakeWriter{})
-    assert.ErrorRaised(t, "Error should be raised", err, true)
+	err := writePlayList("", mocks.FakeWriter{})
+	assert.ErrorRaised(t, "Error should be raised", err, true)
 }
 
 func TestBuildPlaylist(t *testing.T) {

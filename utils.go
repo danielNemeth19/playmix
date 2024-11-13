@@ -68,8 +68,8 @@ func collectExtensions(fsys fs.FS) ([]string, error) {
 	return extensions, err
 }
 
-func createFile() (*os.File, error) {
-	outFile, err := os.Create("temp_new_2.xspf")
+func createFile(fn string) (*os.File, error) {
+	outFile, err := os.Create(fn)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating file: %w\n", err)
 	}

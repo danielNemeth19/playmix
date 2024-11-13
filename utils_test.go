@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"playmix/internal/assert"
 
 	"testing"
@@ -106,4 +107,17 @@ func TestCollectExtensionsError(t *testing.T) {
 	}
 	_, err := collectExtensions(fsys)
 	assert.ErrorRaised(t, "Should raise", err, true)
+}
+
+func TestCreateFile(t *testing.T) {
+	fileName := "temp.xspf"
+	file, err := createFile(fileName)
+	assert.ErrorRaised(t, "Should not raise error", err, false)
+	info, err := os.Stat(fileName)
+	assert.Equal(t, "info", info.Name(), "temp.xspf")
+
+	_, err = createFile("")
+	assert.ErrorRaised(t, "Error should be raised", err, true)
+	file.Close()
+	os.Remove(fileName)
 }

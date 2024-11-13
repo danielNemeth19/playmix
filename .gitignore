@@ -20,5 +20,6 @@ coverage.html
 #profiling
 profiling
 
-# Test files
+# Test files & folder
+plfiles
 *.xspf

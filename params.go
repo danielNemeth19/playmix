@@ -4,21 +4,14 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
-type Params struct {
-	extFlag     bool
-	minDuration int
-	maxDuration int
-	stabilizer  int
-	ratio       int
-	includeF    []string
-	skipF       []string
-	fdate       time.Time
-	tdate       time.Time
-}
+const (
+	playListExtension = ".xspf"
+)
 
 func validateRatio(ratio int) error {
 	if ratio < 0 || ratio > 100 {
@@ -32,6 +25,28 @@ func parseFolder(s string) []string {
 		return []string{}
 	}
 	return strings.Split(s, ",")
+}
+
+type Params struct {
+	extFlag     bool
+	minDuration int
+	maxDuration int
+	stabilizer  int
+	ratio       int
+	fileName    string
+	includeF    []string
+	skipF       []string
+	fdate       time.Time
+	tdate       time.Time
+}
+
+func (p *Params) setFileName(fn string) error {
+	ext := filepath.Ext(fn)
+	if ext != "" {
+		return fmt.Errorf("File name should not have extension defined")
+	}
+	p.fileName = fn + playListExtension
+	return nil
 }
 
 func (p *Params) setDateParams(fdate, tdate string) error {
@@ -67,12 +82,17 @@ func getParams() (*Params, error) {
 	flag.IntVar(&p.maxDuration, "maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
 	flag.IntVar(&p.stabilizer, "stabilizer", math.MaxInt32, "Specifies the interval at which elements are fixed in place during shuffling (they still could be swapped)")
 	flag.IntVar(&p.ratio, "ratio", 100, "Specifies the ratio of files to be included in the playlist (e.g. 80 means roughly 80%)")
+	fileName := flag.String("fn", "", "Specifies the file name of the playlist")
 	fdate := flag.String("fdate", "20000101", "Files created after fdate will be considered")
 	tdate := flag.String("tdate", "20300101", "Files created before tdate will be considered")
 	includeF := flag.String("include", "", "Folders to consider")
 	skipF := flag.String("skip", "", "Folders to skip")
 	flag.Parse()
 	err := validateRatio(p.ratio)
+	if err != nil {
+		return nil, err
+	}
+	err = p.setFileName(*fileName)
 	if err != nil {
 		return nil, err
 	}

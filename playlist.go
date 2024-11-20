@@ -15,6 +15,7 @@ import (
 // TODO: let's sanitize track title by cutting the vlc record prefix
 type MediaItem struct {
 	AbsPath  string
+	Location string
 	Dir      string
 	Name     string
 	Id       int
@@ -160,7 +161,9 @@ func collectMediaContent(p string, fsys fs.FS, params Params) ([]MediaItem, Summ
 				}
 				summary.dBucket.allocate(duration)
 				if duration > float64(params.minDuration) && duration < float64(params.maxDuration) {
-					item := MediaItem{Id: idx, AbsPath: absPath, Name: d.Name(), Duration: duration}
+					location := getUrlEncodedPath(absPath)
+					fmt.Println(location)
+					item := MediaItem{Id: idx, AbsPath: absPath, Location: location, Name: d.Name(), Duration: duration}
 					item.getRelativeDir(rootParts)
 					items = append(items, item)
 					summary.totalDuration += duration

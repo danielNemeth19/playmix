@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,6 +47,11 @@ func isMediaFile(ext string) bool {
 		}
 	}
 	return false
+}
+
+func getUrlEncodedPath(path string) string {
+    location := "file:///" + url.PathEscape(path)
+    return location
 }
 
 func collectExtensions(fsys fs.FS) ([]string, error) {

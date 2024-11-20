@@ -6,7 +6,7 @@ import (
 	vlc "github.com/adrg/libvlc-go/v3"
 )
 
-func playMix() {
+func playMix(fileName string) {
 	// Initialize libVLC. Additional command line arguments can be passed in
 	// to libVLC by specifying them in the Init function.
 	if err := vlc.Init("--fullscreen"); err != nil {
@@ -30,7 +30,7 @@ func playMix() {
 	}
 	defer list.Release()
 
-	err = list.AddMediaFromPath("pl.xspf")
+	err = list.AddMediaFromPath(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}

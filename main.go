@@ -33,7 +33,7 @@ func main() {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}
 	randomizePlaylist(content, params.stabilizer)
-	tl := buildPlayList(content)
+	playList := buildPlayList(content)
 
 	outfile, err := createFile(params.fileName)
 	if err != nil {
@@ -41,11 +41,11 @@ func main() {
 	}
 	defer outfile.Close()
 
-	err = writePlayList(tl, outfile)
+	err = writePlayList(playList, outfile)
 	if err != nil {
 		log.Fatalf("Error during writing playlist file: %s\n", err)
 	}
 	// TODO: maybe make duration bucket summary optional too
 	summary.getData(os.Stdout)
-	playMix()
+	playMix(params.fileName)
 }

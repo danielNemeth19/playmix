@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"playmix/internal/assert"
-
 	"testing"
 	"testing/fstest"
 	"time"
@@ -72,6 +71,22 @@ func TestIsMediaFile(t *testing.T) {
 	for _, tt := range tests {
 		verdict := isMediaFile(tt.ext)
 		assert.Equal(t, tt.name, verdict, tt.expected)
+	}
+}
+
+func TestGetUrlEncodedPath(t *testing.T) {
+	tests := []struct {
+		path     string
+		expected string
+	}{
+		{
+			path:     "home/Music/Album/track with whitespace.mp4",
+			expected: "file:///home/Music/Album/track%20with%20whitespace.mp4",
+		},
+	}
+	for _, tt := range tests {
+		got := getUrlEncodedPath(tt.path)
+		assert.Equal(t, "Path should be url escaped", tt.expected, got)
 	}
 }
 

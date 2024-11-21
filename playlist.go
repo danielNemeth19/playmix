@@ -162,7 +162,6 @@ func collectMediaContent(p string, fsys fs.FS, params Params) ([]MediaItem, Summ
 				summary.dBucket.allocate(duration)
 				if duration > float64(params.minDuration) && duration < float64(params.maxDuration) {
 					location := getUrlEncodedPath(absPath)
-					fmt.Println(location)
 					item := MediaItem{Id: idx, AbsPath: absPath, Location: location, Name: d.Name(), Duration: duration}
 					item.getRelativeDir(rootParts)
 					items = append(items, item)
@@ -258,7 +257,7 @@ func buildPlayList(content []MediaItem) *PlayList {
 
 	for i, media := range content {
 		ext := &Extension{Application: ExtensionApplication, Id: i}
-		track := &Track{Location: media.AbsPath, Title: media.Name, Duration: math.Round(media.Duration), Ext: *ext}
+		track := &Track{Location: media.Location, Title: media.Name, Duration: math.Round(media.Duration), Ext: *ext}
 		tracks = append(tracks, track)
 	}
 	trackList.Tracks = tracks

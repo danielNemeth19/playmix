@@ -25,9 +25,10 @@ func getPath() (string, error) {
 }
 
 func getPathParts(p string) []string {
-	dir, _ := filepath.Split(p)
-	parts := strings.Split(dir, string(filepath.Separator))
-	return parts[1 : len(parts)-1]
+    dir := filepath.Dir(p)
+    trimmedDir := strings.TrimPrefix(dir, string(filepath.Separator))
+	parts := strings.Split(trimmedDir, string(filepath.Separator))
+	return parts
 }
 
 func TimeTrack(start time.Time, name string) {
@@ -50,7 +51,8 @@ func isMediaFile(ext string) bool {
 }
 
 func getUrlEncodedPath(path string) string {
-    location := "file:///" + url.PathEscape(path)
+    dir, fn := filepath.Split(path)
+    location := "file:///" + dir + url.PathEscape(fn)
     return location
 }
 

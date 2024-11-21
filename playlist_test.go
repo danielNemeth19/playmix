@@ -434,7 +434,8 @@ func TestWritePlaylist(t *testing.T) {
 	var buf bytes.Buffer
 	items := []MediaItem{
 		{
-			AbsPath:  "/home/Music/track.mp4",
+			AbsPath:  "/home/Music/best track ever.mp4",
+			Location:  "/home/Music/best%20track%20ever.mp4",
 			Name:     "track.mp4",
 			Duration: 180,
 			Id:       0,
@@ -449,7 +450,7 @@ func TestWritePlaylist(t *testing.T) {
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[2]), "<title></title>")
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[3]), "<trackList>")
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[4]), "<track>")
-	assert.Equal(t, "Output should match", strings.TrimSpace(output[5]), "<location>/home/Music/track.mp4</location>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[5]), "<location>/home/Music/best%20track%20ever.mp4</location>")
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[6]), "<title>track.mp4</title>")
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[7]), "<duration>180</duration>")
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[8]), "<extension application=\"http://www.videolan.org/vlc/playlist/0\">")
@@ -468,7 +469,8 @@ func TestWritePlayListWriteError(t *testing.T) {
 func TestBuildPlaylist(t *testing.T) {
 	items := []MediaItem{
 		{
-			AbsPath:  "/home/Music/track.mp4",
+			AbsPath:  "/home/Music/best track ever.mp4",
+			Location:  "/home/Music/best%20track%20ever.mp4",
 			Name:     "track.mp4",
 			Duration: 180,
 			Id:       0,
@@ -482,7 +484,7 @@ func TestBuildPlaylist(t *testing.T) {
 	assert.Equal(t, "Should have one track", len(pl.Tl.Tracks), 1)
 	assert.Equal(t, "Should have correct extension application", pl.Tl.Tracks[0].Ext.Application, "http://www.videolan.org/vlc/playlist/0")
 	assert.Equal(t, "Should have correct Id", pl.Tl.Tracks[0].Ext.Id, 0)
-	assert.Equal(t, "Should have correct absolute path", pl.Tl.Tracks[0].Location, "/home/Music/track.mp4")
+	assert.Equal(t, "Should have correct absolute path", pl.Tl.Tracks[0].Location, "/home/Music/best%20track%20ever.mp4")
 	assert.Equal(t, "Should have correct title", pl.Tl.Tracks[0].Title, "track.mp4")
 	assert.Equal(t, "Should have correct duration", pl.Tl.Tracks[0].Duration, 180)
 }

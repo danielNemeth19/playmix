@@ -20,7 +20,7 @@ func validateRatio(ratio int) error {
 	return nil
 }
 
-func parseFolder(s string) []string {
+func parseParam(s string) []string {
 	if s == "" {
 		return []string{}
 	}
@@ -36,8 +36,15 @@ type Params struct {
 	fileName    string
 	includeF    []string
 	skipF       []string
+	options     Options
 	fdate       time.Time
 	tdate       time.Time
+}
+
+type Options struct {
+	audio      string
+	start_time string
+	end_time   string
 }
 
 func (p *Params) setFileName(fn string) error {
@@ -70,8 +77,22 @@ func (p *Params) setFolderParams(includeF, skipF string) error {
 	if includeF != "" && skipF != "" {
 		return fmt.Errorf("Include and skip folders are mutually exclusive")
 	}
-	p.includeF = parseFolder(includeF)
-	p.skipF = parseFolder(skipF)
+	p.includeF = parseParam(includeF)
+	p.skipF = parseParam(skipF)
+	return nil
+}
+
+func (p *Params) setOptions(options string) error {
+	opts := parseParam(options)
+	fmt.Println(opts)
+	if len(opts) == 0 {
+		p.options = Options{}
+	}
+	for _, opt := range opts {
+		if opt == "no-audio" {
+			p.options.audio = "no-audio"
+		}
+	}
 	return nil
 }
 
@@ -87,6 +108,7 @@ func getParams() (*Params, error) {
 	tdate := flag.String("tdate", "20300101", "Files created before tdate will be considered")
 	includeF := flag.String("include", "", "Folders to consider")
 	skipF := flag.String("skip", "", "Folders to skip")
+	options := flag.String("options", "", "Options to use:start-time, stop-time, no-audio")
 	flag.Parse()
 	err := validateRatio(p.ratio)
 	if err != nil {
@@ -96,11 +118,15 @@ func getParams() (*Params, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = p.setDateParams(*fdate, *tdate)
+	if err != nil {
+		return nil, err
+	}
 	err = p.setFolderParams(*includeF, *skipF)
 	if err != nil {
 		return nil, err
 	}
-	err = p.setDateParams(*fdate, *tdate)
+	err = p.setOptions(*options)
 	if err != nil {
 		return nil, err
 	}

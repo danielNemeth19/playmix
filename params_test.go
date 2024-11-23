@@ -20,21 +20,21 @@ func TestParamsValidateRatio(t *testing.T) {
 func TestParamsParseNil(t *testing.T) {
 	input := ""
 	expected := []string{}
-	parsed := parseFolder(input)
+	parsed := parseParam(input)
 	assert.EqualSlice(t, "Should return empty slice", parsed, expected)
 }
 
 func TestParamsParseOneItem(t *testing.T) {
 	input := "abc"
 	expected := []string{"abc"}
-	parsed := parseFolder(input)
+	parsed := parseParam(input)
 	assert.EqualSlice(t, "Should return slice", parsed, expected)
 }
 
 func TestParamsParse(t *testing.T) {
 	input := "a,b,c"
 	expected := []string{"a", "b", "c"}
-	parsed := parseFolder(input)
+	parsed := parseParam(input)
 	assert.EqualSlice(t, "Should return multiple folders in slice", parsed, expected)
 }
 
@@ -84,4 +84,16 @@ func TestParamsSetFolderParamsError(t *testing.T) {
 	p := Params{}
 	err := p.setFolderParams("folderA,folderB", "folderC,folderD")
 	assert.ErrorRaised(t, "Folder params are mutually exclusive", err, true)
+}
+
+func TestSetOptions(t *testing.T) {
+	p := Params{}
+	p.setOptions("no-audio")
+	assert.Equal(t, "Options for audio should be set", p.options.audio, "no-audio")
+}
+
+func TestSetOptionsNoOptions(t *testing.T) {
+	p := Params{}
+	p.setOptions("")
+	assert.Equal(t, "If no option struct should be empty", p.options, Options{})
 }

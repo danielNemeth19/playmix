@@ -25,8 +25,8 @@ func getPath() (string, error) {
 }
 
 func getPathParts(p string) []string {
-    dir := filepath.Dir(p)
-    trimmedDir := strings.TrimPrefix(dir, string(filepath.Separator))
+	dir := filepath.Dir(p)
+	trimmedDir := strings.TrimPrefix(dir, string(filepath.Separator))
 	parts := strings.Split(trimmedDir, string(filepath.Separator))
 	return parts
 }
@@ -51,9 +51,9 @@ func isMediaFile(ext string) bool {
 }
 
 func getUrlEncodedPath(path string) string {
-    dir, fn := filepath.Split(path)
-    location := "file:///" + dir + url.PathEscape(fn)
-    return location
+	dir, fn := filepath.Split(path)
+	location := "file:///" + dir + url.PathEscape(fn)
+	return location
 }
 
 func collectExtensions(fsys fs.FS) ([]string, error) {

@@ -435,13 +435,13 @@ func TestWritePlaylist(t *testing.T) {
 	items := []MediaItem{
 		{
 			AbsPath:  "/home/Music/best track ever.mp4",
-			Location:  "/home/Music/best%20track%20ever.mp4",
+			Location: "/home/Music/best%20track%20ever.mp4",
 			Name:     "track.mp4",
 			Duration: 180,
 			Id:       0,
 		},
 	}
-	originalPl := buildPlayList(items)
+	originalPl := buildPlayList(items, Options{})
 	writePlayList(originalPl, &buf)
 	output := strings.Split(buf.String(), "\n")
 	assert.Equal(t, "Output should be 14 rows", len(output), 14)
@@ -461,6 +461,27 @@ func TestWritePlaylist(t *testing.T) {
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[13]), "</playlist>")
 }
 
+func TestWritePlaylistWithOption(t *testing.T) {
+	var buf bytes.Buffer
+	items := []MediaItem{
+		{
+			AbsPath:  "/home/Music/best track ever.mp4",
+			Location: "/home/Music/best%20track%20ever.mp4",
+			Name:     "track.mp4",
+			Duration: 180,
+			Id:       0,
+		},
+	}
+	originalPl := buildPlayList(items, Options{audio: "no-audio"})
+	writePlayList(originalPl, &buf)
+	output := strings.Split(buf.String(), "\n")
+	assert.Equal(t, "Output should be 15 rows", len(output), 15)
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[8]), "<extension application=\"http://www.videolan.org/vlc/playlist/0\">")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[9]), "<vlc:id>0</vlc:id>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[10]), "<vlc:option>no-audio</vlc:option>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[11]), "</extension>")
+}
+
 func TestWritePlayListWriteError(t *testing.T) {
 	err := writePlayList("", mocks.FakeWriter{})
 	assert.ErrorRaised(t, "Error should be raised", err, true)
@@ -470,13 +491,13 @@ func TestBuildPlaylist(t *testing.T) {
 	items := []MediaItem{
 		{
 			AbsPath:  "/home/Music/best track ever.mp4",
-			Location:  "/home/Music/best%20track%20ever.mp4",
+			Location: "/home/Music/best%20track%20ever.mp4",
 			Name:     "track.mp4",
 			Duration: 180,
 			Id:       0,
 		},
 	}
-	pl := buildPlayList(items)
+	pl := buildPlayList(items, Options{audio: "no-audio"})
 	assert.Equal(t, "Should have correct Xmlns value", pl.Xmlns, "http://xspf.org/ns/0/")
 	assert.Equal(t, "Should have correct XmlnsVlc value", pl.XmlnsVlc, "http://www.videolan.org/vlc/playlist/ns/0/")
 	assert.Equal(t, "Should have correct version", pl.Version, "1")
@@ -484,6 +505,7 @@ func TestBuildPlaylist(t *testing.T) {
 	assert.Equal(t, "Should have one track", len(pl.Tl.Tracks), 1)
 	assert.Equal(t, "Should have correct extension application", pl.Tl.Tracks[0].Ext.Application, "http://www.videolan.org/vlc/playlist/0")
 	assert.Equal(t, "Should have correct Id", pl.Tl.Tracks[0].Ext.Id, 0)
+	assert.Equal(t, "Should have correct Id", pl.Tl.Tracks[0].Ext.Option, "no-audio")
 	assert.Equal(t, "Should have correct absolute path", pl.Tl.Tracks[0].Location, "/home/Music/best%20track%20ever.mp4")
 	assert.Equal(t, "Should have correct title", pl.Tl.Tracks[0].Title, "track.mp4")
 	assert.Equal(t, "Should have correct duration", pl.Tl.Tracks[0].Duration, 180)

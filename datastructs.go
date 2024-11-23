@@ -14,6 +14,7 @@ type Extension struct {
 	XMLName     xml.Name `xml:"extension"`
 	Application string   `xml:"application,attr"`
 	Id          int      `xml:"vlc:id"`
+	Option      string   `xml:"vlc:option,omitempty"`
 }
 
 type Track struct {

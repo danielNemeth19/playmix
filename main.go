@@ -33,7 +33,7 @@ func main() {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}
 	randomizePlaylist(content, params.stabilizer)
-	playList := buildPlayList(content)
+	playList := buildPlayList(content, params.options)
 
 	outfile, err := createFile(params.fileName)
 	if err != nil {

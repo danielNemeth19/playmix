@@ -250,13 +250,16 @@ func writePlayList(s any, w io.Writer) error {
 	return nil
 }
 
-func buildPlayList(content []MediaItem) *PlayList {
+func buildPlayList(content []MediaItem, options Options) *PlayList {
 	playList := &PlayList{Xmlns: Xmlns, XmlnsVlc: XmlnsVlc, Version: "1"}
 	trackList := &TrackList{}
 	tracks := []*Track{}
 
 	for i, media := range content {
 		ext := &Extension{Application: ExtensionApplication, Id: i}
+		if options.audio != "" {
+			ext.Option = options.audio
+		}
 		track := &Track{Location: media.Location, Title: media.Name, Duration: math.Round(media.Duration), Ext: *ext}
 		tracks = append(tracks, track)
 	}

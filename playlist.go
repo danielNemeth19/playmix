@@ -259,7 +259,11 @@ func buildPlayList(content []MediaItem, options Options) *PlayList {
 		ext := &Extension{Application: ExtensionApplication, Id: i}
 		if options.audio != "" {
 			ext.Option = options.audio
-		}
+		} else {
+            if options.start_time != "" {
+                ext.Option = options.start_time
+            }
+        }
 		track := &Track{Location: media.Location, Title: media.Name, Duration: math.Round(media.Duration), Ext: *ext}
 		tracks = append(tracks, track)
 	}

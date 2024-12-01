@@ -41,7 +41,13 @@ func TestParamsParse(t *testing.T) {
 func TestParamsSetFileName(t *testing.T) {
 	p := Params{}
 	p.setFileName("myplaylist")
-	assert.Equal(t, "Should set file name correctly", "myplaylist.xspf", p.fileName)
+	assert.Equal(t, "Should set file name correctly", p.fileName, "myplaylist.xspf")
+}
+
+func TestParamsSetFileNameIfNotProvided(t *testing.T) {
+	p := Params{}
+	p.setFileName("")
+	assert.Equal(t, "Should set file name correctly", p.fileName, "pl-test.xspf")
 }
 
 func TestParamsSetFileNameError(t *testing.T) {
@@ -90,6 +96,18 @@ func TestSetOptions(t *testing.T) {
 	p := Params{}
 	p.setOptions("no-audio")
 	assert.Equal(t, "Options for audio should be set", p.options.audio, "no-audio")
+}
+
+func TestSetOptionsStartTime(t *testing.T) {
+    p := Params{}
+    p.setOptions("start-time=60")
+    assert.Equal(t, "Option for start-time should be set", p.options.start_time, "start-time=60")
+}
+
+func TestSetOptionsEndTime(t *testing.T) {
+    p := Params{}
+    p.setOptions("end-time=120")
+    assert.Equal(t, "Option for end-time should be set", p.options.end_time, "end-time=120")
 }
 
 func TestSetOptionsNoOptions(t *testing.T) {

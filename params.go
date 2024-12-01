@@ -48,11 +48,15 @@ type Options struct {
 }
 
 func (p *Params) setFileName(fn string) error {
-	ext := filepath.Ext(fn)
-	if ext != "" {
-		return fmt.Errorf("File name should not have extension defined")
+	if fn == "" {
+		p.fileName = "pl-test" + playListExtension
+	} else {
+		ext := filepath.Ext(fn)
+		if ext != "" {
+			return fmt.Errorf("File name should not have extension defined")
+		}
+		p.fileName = fn + playListExtension
 	}
-	p.fileName = fn + playListExtension
 	return nil
 }
 
@@ -89,8 +93,13 @@ func (p *Params) setOptions(options string) error {
 		p.options = Options{}
 	}
 	for _, opt := range opts {
-		if opt == "no-audio" {
-			p.options.audio = "no-audio"
+		switch {
+		case opt == "no-audio":
+			p.options.audio = opt
+		case strings.HasPrefix(opt, "start-time"):
+			p.options.start_time = opt
+		case strings.HasPrefix(opt, "end-time"):
+            p.options.end_time = opt
 		}
 	}
 	return nil

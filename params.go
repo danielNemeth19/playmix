@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math"
 	"path/filepath"
+	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -43,8 +45,27 @@ type Params struct {
 
 type Options struct {
 	audio      string
-	start_time string
-	end_time   string
+	start_time uint16
+	end_time   uint16
+}
+
+func (o *Options) ParseSeconds(field string, opt string) error {
+	parts := strings.Split(opt, "=")
+	seconds, err := strconv.ParseUint(parts[1], 10, 32)
+	if err != nil {
+		return fmt.Errorf("Int conversion failed for: %s\n", opt)
+	}
+	structValue := reflect.ValueOf(o).Elem()
+	fieldValue := structValue.FieldByName(field)
+	if !fieldValue.IsValid() {
+		return fmt.Errorf("field error: %s", field)
+	}
+	if !fieldValue.CanSet() {
+		return fmt.Errorf("cannot set field: %s", field)
+	}
+	val := reflect.ValueOf(uint16(seconds))
+	fieldValue.Set(val)
+	return nil
 }
 
 func (p *Params) setFileName(fn string) error {
@@ -88,7 +109,6 @@ func (p *Params) setFolderParams(includeF, skipF string) error {
 
 func (p *Params) setOptions(options string) error {
 	opts := parseParam(options)
-	fmt.Println(opts)
 	if len(opts) == 0 {
 		p.options = Options{}
 	}
@@ -97,9 +117,21 @@ func (p *Params) setOptions(options string) error {
 		case opt == "no-audio":
 			p.options.audio = opt
 		case strings.HasPrefix(opt, "start-time"):
-			p.options.start_time = opt
+			p.options.ParseSeconds("start-time", opt)
+			// parts := strings.Split(opt, "=")
+			// startSeconds, err := strconv.ParseUint(parts[1], 10, 32)
+			// if err != nil {
+			// return fmt.Errorf("Int conversion failed for start-time: %s\n", opt)
+			// }
+			// p.options.start_time = uint16(startSeconds)
 		case strings.HasPrefix(opt, "end-time"):
-            p.options.end_time = opt
+			p.options.ParseSeconds("end-time", opt)
+			// parts := strings.Split(opt, "=")
+			// endInSeconds, err := strconv.ParseUint(parts[1], 10, 32)
+			// if err != nil {
+			// return fmt.Errorf("Int conversion failed for end-time: %s\n", opt)
+			// }
+			// p.options.end_time = uint16(endInSeconds)
 		}
 	}
 	return nil

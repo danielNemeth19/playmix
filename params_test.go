@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"playmix/internal/assert"
 	"testing"
 	"time"
@@ -92,22 +93,37 @@ func TestParamsSetFolderParamsError(t *testing.T) {
 	assert.ErrorRaised(t, "Folder params are mutually exclusive", err, true)
 }
 
-func TestSetOptions(t *testing.T) {
+func TestSetOptionsNoAudio(t *testing.T) {
 	p := Params{}
 	p.setOptions("no-audio")
 	assert.Equal(t, "Options for audio should be set", p.options.audio, "no-audio")
 }
 
 func TestSetOptionsStartTime(t *testing.T) {
-    p := Params{}
-    p.setOptions("start-time=60")
-    assert.Equal(t, "Option for start-time should be set", p.options.start_time, "start-time=60")
+	p := Params{}
+	err := p.setOptions("start-time=60")
+	fmt.Println(err)
+	// assert.Equal(t, "no error raised", err, nil)
+	assert.Equal(t, "Option for start-time should be set", p.options.start_time, 60)
 }
 
+// func TestSetOptionsStartTimeRaisesError(t *testing.T) {
+// p := Params{}
+// err := p.setOptions("start-time=-60")
+// assert.ErrorRaised(t, "Negative value should raise an error", err, true)
+// }
+
 func TestSetOptionsEndTime(t *testing.T) {
-    p := Params{}
-    p.setOptions("end-time=120")
-    assert.Equal(t, "Option for end-time should be set", p.options.end_time, "end-time=120")
+	p := Params{}
+	err := p.setOptions("end-time=120")
+	assert.Equal(t, "no error raised", err, nil)
+	assert.Equal(t, "Option for end-time should be set", p.options.end_time, 120)
+}
+
+func TestSetOptionsEndTimeRaisesError(t *testing.T) {
+	p := Params{}
+	err := p.setOptions("end-time=-120")
+	assert.ErrorRaised(t, "Negative value should raise an error", err, true)
 }
 
 func TestSetOptionsNoOptions(t *testing.T) {

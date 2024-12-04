@@ -44,9 +44,9 @@ type Params struct {
 }
 
 type Options struct {
-	audio      string
-	start_time uint16
-	end_time   uint16
+	audio     string
+	StartTime uint16
+	EndTime  uint16
 }
 
 func (o *Options) ParseSeconds(field string, opt string) error {
@@ -116,22 +116,16 @@ func (p *Params) setOptions(options string) error {
 		switch {
 		case opt == "no-audio":
 			p.options.audio = opt
-		case strings.HasPrefix(opt, "start-time"):
-			p.options.ParseSeconds("start-time", opt)
-			// parts := strings.Split(opt, "=")
-			// startSeconds, err := strconv.ParseUint(parts[1], 10, 32)
-			// if err != nil {
-			// return fmt.Errorf("Int conversion failed for start-time: %s\n", opt)
-			// }
-			// p.options.start_time = uint16(startSeconds)
+        case strings.HasPrefix(opt, "start-time"):
+			err := p.options.ParseSeconds("StartTime", opt)
+			if err != nil {
+				return fmt.Errorf("Error setting start-time: %s\n", opt)
+			}
 		case strings.HasPrefix(opt, "end-time"):
-			p.options.ParseSeconds("end-time", opt)
-			// parts := strings.Split(opt, "=")
-			// endInSeconds, err := strconv.ParseUint(parts[1], 10, 32)
-			// if err != nil {
-			// return fmt.Errorf("Int conversion failed for end-time: %s\n", opt)
-			// }
-			// p.options.end_time = uint16(endInSeconds)
+			err := p.options.ParseSeconds("EndTime", opt)
+			if err != nil {
+				return fmt.Errorf("Int conversion failed for end-time: %s\n", opt)
+			}
 		}
 	}
 	return nil

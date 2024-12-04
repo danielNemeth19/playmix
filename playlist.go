@@ -260,7 +260,7 @@ func buildPlayList(content []MediaItem, options Options) *PlayList {
 		if options.audio != "" {
 			ext.Option = options.audio
 		} else {
-			if options.start_time > 0 {
+			if options.StartTime > 0 {
 				// ext.Option = options.start_time
 				fmt.Printf("deal with this later")
 			}

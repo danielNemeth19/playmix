@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"playmix/internal/assert"
 	"testing"
 	"time"
@@ -102,22 +101,21 @@ func TestSetOptionsNoAudio(t *testing.T) {
 func TestSetOptionsStartTime(t *testing.T) {
 	p := Params{}
 	err := p.setOptions("start-time=60")
-	fmt.Println(err)
-	// assert.Equal(t, "no error raised", err, nil)
-	assert.Equal(t, "Option for start-time should be set", p.options.start_time, 60)
+	assert.Equal(t, "no error raised", err, nil)
+	assert.Equal(t, "Option for start-time should be set", p.options.StartTime, 60)
 }
 
-// func TestSetOptionsStartTimeRaisesError(t *testing.T) {
-// p := Params{}
-// err := p.setOptions("start-time=-60")
-// assert.ErrorRaised(t, "Negative value should raise an error", err, true)
-// }
+func TestSetOptionsStartTimeRaisesError(t *testing.T) {
+	p := Params{}
+	err := p.setOptions("start-time=-60")
+	assert.ErrorRaised(t, "Negative value should raise an error", err, true)
+}
 
 func TestSetOptionsEndTime(t *testing.T) {
 	p := Params{}
 	err := p.setOptions("end-time=120")
 	assert.Equal(t, "no error raised", err, nil)
-	assert.Equal(t, "Option for end-time should be set", p.options.end_time, 120)
+	assert.Equal(t, "Option for end-time should be set", p.options.EndTime, 120)
 }
 
 func TestSetOptionsEndTimeRaisesError(t *testing.T) {
@@ -125,6 +123,8 @@ func TestSetOptionsEndTimeRaisesError(t *testing.T) {
 	err := p.setOptions("end-time=-120")
 	assert.ErrorRaised(t, "Negative value should raise an error", err, true)
 }
+
+// TODO:Missing reflection error tests
 
 func TestSetOptionsNoOptions(t *testing.T) {
 	p := Params{}

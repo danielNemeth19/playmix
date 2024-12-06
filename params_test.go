@@ -92,10 +92,20 @@ func TestParamsSetFolderParamsError(t *testing.T) {
 	assert.ErrorRaised(t, "Folder params are mutually exclusive", err, true)
 }
 
+func TestSetSecondsSetsValue(t *testing.T) {
+	o := Options{}
+	o.SetSeconds("StartTime", "start-time=50")
+	assert.Equal(t, "Start time should be set correctly", o.StartTime, 50)
+	o.SetSeconds("StopTime", "stop-time=60")
+	assert.Equal(t, "Start time should be set correctly", o.StopTime, 60)
+}
+
+//TODO: Test errors for SetSeconds
+
 func TestSetOptionsNoAudio(t *testing.T) {
 	p := Params{}
 	p.setOptions("no-audio")
-	assert.Equal(t, "Options for audio should be set", p.options.audio, "no-audio")
+	assert.Equal(t, "Options for audio should be set", p.options.Audio, false)
 }
 
 func TestSetOptionsStartTime(t *testing.T) {
@@ -103,6 +113,7 @@ func TestSetOptionsStartTime(t *testing.T) {
 	err := p.setOptions("start-time=60")
 	assert.Equal(t, "no error raised", err, nil)
 	assert.Equal(t, "Option for start-time should be set", p.options.StartTime, 60)
+	assert.Equal(t, "Option audio should default to true", p.options.Audio, true)
 }
 
 func TestSetOptionsStartTimeRaisesError(t *testing.T) {
@@ -113,21 +124,20 @@ func TestSetOptionsStartTimeRaisesError(t *testing.T) {
 
 func TestSetOptionsEndTime(t *testing.T) {
 	p := Params{}
-	err := p.setOptions("end-time=120")
+	err := p.setOptions("stop-time=120")
 	assert.Equal(t, "no error raised", err, nil)
-	assert.Equal(t, "Option for end-time should be set", p.options.EndTime, 120)
+	assert.Equal(t, "Option for end-time should be set", p.options.StopTime, 120)
+	assert.Equal(t, "Option audio should default to true", p.options.Audio, true)
 }
 
 func TestSetOptionsEndTimeRaisesError(t *testing.T) {
 	p := Params{}
-	err := p.setOptions("end-time=-120")
+	err := p.setOptions("stop-time=-120")
 	assert.ErrorRaised(t, "Negative value should raise an error", err, true)
 }
-
-// TODO:Missing reflection error tests
 
 func TestSetOptionsNoOptions(t *testing.T) {
 	p := Params{}
 	p.setOptions("")
-	assert.Equal(t, "If no option struct should be empty", p.options, Options{})
+	assert.Equal(t, "If no option struct should be empty", p.options, Options{Audio: true, StartTime: 0, StopTime: 0})
 }

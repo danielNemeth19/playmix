@@ -430,7 +430,7 @@ func TestRandomizePlaylistStabilizerLessRandom(t *testing.T) {
 	assert.Equal(t, "Randomness of not stabilized shuffle should be higher", stabilizedLessRandom, true)
 }
 
-func TestWritePlaylist(t *testing.T) {
+func TestWritePlayList(t *testing.T) {
 	var buf bytes.Buffer
 	items := []MediaItem{
 		{
@@ -441,7 +441,7 @@ func TestWritePlaylist(t *testing.T) {
 			Id:       0,
 		},
 	}
-	originalPl := buildPlayList(items, Options{})
+	originalPl := buildPlayList(items, Options{Audio: true})
 	writePlayList(originalPl, &buf)
 	output := strings.Split(buf.String(), "\n")
 	assert.Equal(t, "Output should be 14 rows", len(output), 14)
@@ -461,7 +461,7 @@ func TestWritePlaylist(t *testing.T) {
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[13]), "</playlist>")
 }
 
-func TestWritePlaylistWithOption(t *testing.T) {
+func TestWritePlayListWithNoAudioOption(t *testing.T) {
 	var buf bytes.Buffer
 	items := []MediaItem{
 		{
@@ -472,13 +472,55 @@ func TestWritePlaylistWithOption(t *testing.T) {
 			Id:       0,
 		},
 	}
-	originalPl := buildPlayList(items, Options{audio: "no-audio"})
+	originalPl := buildPlayList(items, Options{Audio: false})
 	writePlayList(originalPl, &buf)
 	output := strings.Split(buf.String(), "\n")
 	assert.Equal(t, "Output should be 15 rows", len(output), 15)
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[8]), "<extension application=\"http://www.videolan.org/vlc/playlist/0\">")
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[9]), "<vlc:id>0</vlc:id>")
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[10]), "<vlc:option>no-audio</vlc:option>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[11]), "</extension>")
+}
+
+func TestWritePlayListWithStartOption(t *testing.T) {
+	var buf bytes.Buffer
+	items := []MediaItem{
+		{
+			AbsPath:  "/home/Music/best track ever.mp4",
+			Location: "/home/Music/best%20track%20ever.mp4",
+			Name:     "track.mp4",
+			Duration: 180,
+			Id:       0,
+		},
+	}
+	originalPl := buildPlayList(items, Options{Audio: true, StartTime: 50})
+	writePlayList(originalPl, &buf)
+	output := strings.Split(buf.String(), "\n")
+	assert.Equal(t, "Output should be 15 rows", len(output), 15)
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[8]), "<extension application=\"http://www.videolan.org/vlc/playlist/0\">")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[9]), "<vlc:id>0</vlc:id>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[10]), "<vlc:option>start-time=50</vlc:option>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[11]), "</extension>")
+}
+
+func TestWritePlayListWithEndOption(t *testing.T) {
+	var buf bytes.Buffer
+	items := []MediaItem{
+		{
+			AbsPath:  "/home/Music/best track ever.mp4",
+			Location: "/home/Music/best%20track%20ever.mp4",
+			Name:     "track.mp4",
+			Duration: 180,
+			Id:       0,
+		},
+	}
+	originalPl := buildPlayList(items, Options{Audio: true, StopTime: 50})
+	writePlayList(originalPl, &buf)
+	output := strings.Split(buf.String(), "\n")
+	assert.Equal(t, "Output should be 15 rows", len(output), 15)
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[8]), "<extension application=\"http://www.videolan.org/vlc/playlist/0\">")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[9]), "<vlc:id>0</vlc:id>")
+	assert.Equal(t, "Output should match", strings.TrimSpace(output[10]), "<vlc:option>stop-time=50</vlc:option>")
 	assert.Equal(t, "Output should match", strings.TrimSpace(output[11]), "</extension>")
 }
 
@@ -497,7 +539,7 @@ func TestBuildPlaylist(t *testing.T) {
 			Id:       0,
 		},
 	}
-	pl := buildPlayList(items, Options{audio: "no-audio"})
+	pl := buildPlayList(items, Options{Audio: false})
 	assert.Equal(t, "Should have correct Xmlns value", pl.Xmlns, "http://xspf.org/ns/0/")
 	assert.Equal(t, "Should have correct XmlnsVlc value", pl.XmlnsVlc, "http://www.videolan.org/vlc/playlist/ns/0/")
 	assert.Equal(t, "Should have correct version", pl.Version, "1")

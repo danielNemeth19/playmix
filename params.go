@@ -44,12 +44,27 @@ type Params struct {
 }
 
 type Options struct {
-	audio     string
+	Audio     bool
 	StartTime uint16
-	EndTime  uint16
+	StopTime  uint16
 }
 
-func (o *Options) ParseSeconds(field string, opt string) error {
+func (o *Options) StringifyAudio() string {
+	if !o.Audio {
+		return "no-audio"
+	}
+	return ""
+}
+
+func (o *Options) StringifyStartTime() string {
+	return "start-time=" + strconv.Itoa(int(o.StartTime))
+}
+
+func (o *Options) StringifyEndTime() string {
+	return "stop-time=" + strconv.Itoa(int(o.StopTime))
+}
+
+func (o *Options) SetSeconds(field string, opt string) error {
 	parts := strings.Split(opt, "=")
 	seconds, err := strconv.ParseUint(parts[1], 10, 32)
 	if err != nil {
@@ -109,20 +124,18 @@ func (p *Params) setFolderParams(includeF, skipF string) error {
 
 func (p *Params) setOptions(options string) error {
 	opts := parseParam(options)
-	if len(opts) == 0 {
-		p.options = Options{}
-	}
+	p.options = Options{Audio: true}
 	for _, opt := range opts {
 		switch {
 		case opt == "no-audio":
-			p.options.audio = opt
-        case strings.HasPrefix(opt, "start-time"):
-			err := p.options.ParseSeconds("StartTime", opt)
+			p.options.Audio = false
+		case strings.HasPrefix(opt, "start-time"):
+			err := p.options.SetSeconds("StartTime", opt)
 			if err != nil {
 				return fmt.Errorf("Error setting start-time: %s\n", opt)
 			}
-		case strings.HasPrefix(opt, "end-time"):
-			err := p.options.ParseSeconds("EndTime", opt)
+		case strings.HasPrefix(opt, "stop-time"):
+			err := p.options.SetSeconds("StopTime", opt)
 			if err != nil {
 				return fmt.Errorf("Int conversion failed for end-time: %s\n", opt)
 			}

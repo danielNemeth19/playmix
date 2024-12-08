@@ -44,13 +44,13 @@ type Params struct {
 }
 
 type Options struct {
-	Audio     bool
+	audio     bool
 	StartTime uint16
 	StopTime  uint16
 }
 
 func (o *Options) StringifyAudio() string {
-	if !o.Audio {
+	if !o.audio {
 		return "no-audio"
 	}
 	return ""
@@ -124,11 +124,11 @@ func (p *Params) setFolderParams(includeF, skipF string) error {
 
 func (p *Params) setOptions(options string) error {
 	opts := parseParam(options)
-	p.options = Options{Audio: true}
+	p.options = Options{audio: true}
 	for _, opt := range opts {
 		switch {
 		case opt == "no-audio":
-			p.options.Audio = false
+			p.options.audio = false
 		case strings.HasPrefix(opt, "start-time"):
 			err := p.options.SetSeconds("StartTime", opt)
 			if err != nil {

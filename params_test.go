@@ -100,12 +100,23 @@ func TestSetSecondsSetsValue(t *testing.T) {
 	assert.Equal(t, "Start time should be set correctly", o.StopTime, 60)
 }
 
-//TODO: Test errors for SetSeconds
+func TestSetSecondsError(t *testing.T) {
+	o := Options{}
+
+	err := o.SetSeconds("StartTime", "start-time=invalid-value")
+	assert.ErrorRaised(t, "Int conversion error should be raised", err, true)
+
+	err = o.SetSeconds("InvalidField", "invalid-field=50")
+	assert.ErrorRaised(t, "IsValid error should be raised", err, true)
+
+	err = o.SetSeconds("audio", "audio=50")
+	assert.ErrorRaised(t, "CanSet error should be raised", err, true)
+}
 
 func TestSetOptionsNoAudio(t *testing.T) {
 	p := Params{}
 	p.setOptions("no-audio")
-	assert.Equal(t, "Options for audio should be set", p.options.Audio, false)
+	assert.Equal(t, "Options for audio should be set", p.options.audio, false)
 }
 
 func TestSetOptionsStartTime(t *testing.T) {
@@ -113,7 +124,7 @@ func TestSetOptionsStartTime(t *testing.T) {
 	err := p.setOptions("start-time=60")
 	assert.Equal(t, "no error raised", err, nil)
 	assert.Equal(t, "Option for start-time should be set", p.options.StartTime, 60)
-	assert.Equal(t, "Option audio should default to true", p.options.Audio, true)
+	assert.Equal(t, "Option audio should default to true", p.options.audio, true)
 }
 
 func TestSetOptionsStartTimeRaisesError(t *testing.T) {
@@ -127,7 +138,7 @@ func TestSetOptionsEndTime(t *testing.T) {
 	err := p.setOptions("stop-time=120")
 	assert.Equal(t, "no error raised", err, nil)
 	assert.Equal(t, "Option for end-time should be set", p.options.StopTime, 120)
-	assert.Equal(t, "Option audio should default to true", p.options.Audio, true)
+	assert.Equal(t, "Option audio should default to true", p.options.audio, true)
 }
 
 func TestSetOptionsEndTimeRaisesError(t *testing.T) {
@@ -139,5 +150,5 @@ func TestSetOptionsEndTimeRaisesError(t *testing.T) {
 func TestSetOptionsNoOptions(t *testing.T) {
 	p := Params{}
 	p.setOptions("")
-	assert.Equal(t, "If no option struct should be empty", p.options, Options{Audio: true, StartTime: 0, StopTime: 0})
+	assert.Equal(t, "If no option struct should be empty", p.options, Options{audio: true, StartTime: 0, StopTime: 0})
 }

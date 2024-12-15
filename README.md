@@ -2,6 +2,61 @@
 
 Project is aimed at creating randomized playlist files.
 
+## Table of Contents
+* [Usage](#usage)
+    * [General Options](#general-options)
+    * [Filtering Options](#filtering-options)
+    * [Randomizing Options](#randomizing-options)
+    * [Media Item Options](#media-item-options)
+- [File format](#file-format)
+- [Example XSPF format](#example-xspf-format)
+- [VLC Extensions quick guide](#vlc-extensions-quick-guide)
+- [TODO](#todo)
+
+## Usage:
+The tool expects an environment variable called `MEDIA_SOURCE` to be set as the `root` of all media files. 
+
+This path will be recursively searched for all .mp4 files, respecting the below options.
+
+### General Options
+    -h, --help                  Print help and exists
+    -ext                        If specified, collects unique file extensions
+    -fn                         Specifies the file name to use
+                                (defaults to pl-test.xspf) 
+
+### Filtering Options
+    -fdate                      Only files after this date will be considered 
+                                (defaults to "20000101")
+    -tdate                      Only files up to this date will be considered
+                                (defaults to "20300101")
+    -mindur                     Consider only files with a duration longer
+                                than the specified value (in seconds)
+    -maxdur                     Consider only files with a duration shorter
+    -include                    Folders to consider
+    -skip                       Folders to skip
+Both `include` and `skip` accepts a comma-separated list of folder names. The two option is mutually exclusive.
+
+
+### Randomizing Options 
+    -ratio                      Specifies the ratio of files to be included
+                                (e.g. 80 means roughly 80%) 
+    -stabilizer                 Specifies the interval at which elements are fixed
+                                in place during shuffling (they still could be swapped)
+
+### Media Item Options
+    -options                    Allows for additional settings: it accepts a comma-
+                                separated list of options
+The available options are:
+- `no-audio`: Excludes audio from the playlist.
+- `start-time=<seconds>`: Sets the start time for the playlist in seconds.
+- `stop-time=<seconds>`: Sets the stop time for the playlist in seconds.
+
+Example usage:
+```
+-options="no-audio,start-time=30,stop-time=120"
+```
+This example will exclude audio, start the playlist at 30 seconds, and stop it at 120 seconds.
+
 ## File format
 XSPF is a playlist in xml format - it is a free and open format.
 

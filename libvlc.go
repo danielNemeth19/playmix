@@ -10,6 +10,8 @@ func playMix(fileName string) {
 	// Initialize libVLC. Additional command line arguments can be passed in
 	// to libVLC by specifying them in the Init function.
 	if err := vlc.Init("--fullscreen"); err != nil {
+	// --sub-filter="marq{marquee=akarmi ami érdekes}"
+    // if err := vlc.Init(":sub-filter=marq", ":marq-marquee=Hello, World!"); err != nil {
 		log.Fatal(err)
 	}
 	defer vlc.Release()
@@ -30,11 +32,25 @@ func playMix(fileName string) {
 	}
 	defer list.Release()
 
-	err = list.AddMediaFromPath(fileName)
+	// err = list.AddMediaFromPath(fileName)
+	// if err != nil {
+		// log.Fatal(err)
+	// }
+	
+	media, err := vlc.NewMediaFromPath(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err = player.SetMediaList(list); err != nil {
+	defer media.Release()
+
+
+	media.AddOptions("--sub-filter=\"marq{marquee=akarmi ami érdekes}\"")
+
+    if err = list.AddMedia(media); err != nil {
+        log.Fatal(err)
+    }
+
+    if err = player.SetMediaList(list); err != nil {
 		log.Fatal(err)
 	}
 

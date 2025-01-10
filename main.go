@@ -9,7 +9,6 @@ import (
 
 func main() {
 	defer TimeTrack(time.Now(), "main")
-	// TODO: filename needs to be generated, or provided
 	params, err := getParams()
 	if err != nil {
 		log.Fatalf("Param validation error: %s\n", err)
@@ -47,5 +46,8 @@ func main() {
 	}
 	// TODO: maybe make duration bucket summary optional too
 	summary.getData(os.Stdout)
-	playMix(params.fileName)
+	if params.playFlag {
+		// playMix(params.fileName)
+		playMixExec(params.fileName)
+	}
 }

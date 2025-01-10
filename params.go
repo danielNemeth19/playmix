@@ -31,6 +31,7 @@ func parseParam(s string) []string {
 
 type Params struct {
 	extFlag     bool
+	playFlag    bool
 	minDuration int
 	maxDuration int
 	stabilizer  int
@@ -147,6 +148,7 @@ func (p *Params) setOptions(options string) error {
 func getParams() (*Params, error) {
 	p := &Params{}
 	flag.BoolVar(&p.extFlag, "ext", false, "If specified, collects unique file extensions")
+	flag.BoolVar(&p.playFlag, "play", false, "If specified, playlist will be played")
 	flag.IntVar(&p.minDuration, "mindur", 0, "Minimum duration of media files to collect (in seconds)")
 	flag.IntVar(&p.maxDuration, "maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
 	flag.IntVar(&p.stabilizer, "stabilizer", math.MaxInt32, "Specifies the interval at which elements are fixed in place during shuffling (they still could be swapped)")

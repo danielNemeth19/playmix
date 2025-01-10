@@ -21,6 +21,7 @@ This path will be recursively searched for all .mp4 files, respecting the below 
 ### General Options
     -h, --help                  Print help and exists
     -ext                        If specified, collects unique file extensions
+    -play                       If specified, playlist will be automatically played
     -fn                         Specifies the file name to use
                                 (defaults to pl-test.xspf) 
 

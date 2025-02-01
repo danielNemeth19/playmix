@@ -1,61 +1,81 @@
 package main
 
 import (
+	"image/color"
 	"log"
 
 	vlc "github.com/adrg/libvlc-go/v3"
 )
 
-func playMix(fileName string) {
-	// Initialize libVLC. Additional command line arguments can be passed in
-	// to libVLC by specifying them in the Init function.
+func playMixList(fileName string) {
 	if err := vlc.Init("--fullscreen"); err != nil {
-	// --sub-filter="marq{marquee=akarmi ami érdekes}"
-    // if err := vlc.Init(":sub-filter=marq", ":marq-marquee=Hello, World!"); err != nil {
 		log.Fatal(err)
 	}
 	defer vlc.Release()
 
-	// Create a new list player.
-	player, err := vlc.NewListPlayer()
+	// Create a new list listPlayer.
+	listPlayer, err := vlc.NewListPlayer()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer func() {
-		player.Stop()
-		player.Release()
+		listPlayer.Stop()
+		listPlayer.Release()
 	}()
 
-	list, err := vlc.NewMediaList()
+	mediaList, err := vlc.NewMediaList()
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer list.Release()
+	defer mediaList.Release()
 
-	// err = list.AddMediaFromPath(fileName)
-	// if err != nil {
-		// log.Fatal(err)
-	// }
-	
-	media, err := vlc.NewMediaFromPath(fileName)
+	err = mediaList.AddMediaFromPath(fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer media.Release()
 
-
-	media.AddOptions("--sub-filter=\"marq{marquee=akarmi ami érdekes}\"")
-
-    if err = list.AddMedia(media); err != nil {
-        log.Fatal(err)
-    }
-
-    if err = player.SetMediaList(list); err != nil {
+	if err = listPlayer.SetMediaList(mediaList); err != nil {
 		log.Fatal(err)
 	}
 
-	// Retrieve player event manager.
-	manager, err := player.EventManager()
+	player, err := listPlayer.Player()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// retrieve player instance event manager
+	playerManager, err := player.EventManager()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	marqueeSetter := func(event vlc.Event, userData interface{}) {
+		player, err := listPlayer.Player()
+		if err != nil {
+			log.Fatal(err)
+		}
+		marquee := player.Marquee()
+		marquee.Enable(true)
+		marquee.SetText("TESTING TESTING\nTESTING TESTING")
+		color := color.RGBA{
+			R: 255,
+			G: 0,
+			B: 0,
+			A: 255,
+		}
+		marquee.SetColor(color)
+		marquee.SetOpacity(100)
+		marquee.SetPosition(vlc.PositionBottomLeft)
+	}
+
+	playerEventID, err := playerManager.Attach(vlc.MediaPlayerPlaying, marqueeSetter, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer playerManager.Detach(playerEventID)
+
+	// Retrieve list player event manager.
+	manager, err := listPlayer.EventManager()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,9 +93,8 @@ func playMix(fileName string) {
 	defer manager.Detach(eventID)
 
 	// Start playing the media.
-	if err = player.Play(); err != nil {
+	if err = listPlayer.Play(); err != nil {
 		log.Fatal(err)
 	}
-
 	<-quit
 }

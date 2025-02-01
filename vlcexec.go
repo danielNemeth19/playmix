@@ -2,78 +2,78 @@ package main
 
 import (
 	"fmt"
+	vlc "github.com/adrg/libvlc-go/v3"
 	"image/color"
 	"log"
-
-	vlc "github.com/adrg/libvlc-go/v3"
+	"os/exec"
 )
 
 func playMixExec(fileName string) {
-	// fmt.Printf("playing now: %s\n", fileName)
-	// cmd := exec.Command("vlc", fileName, "--sub-filter=marq{marquee=test,color=0x00FF00,position=8}")
+	fmt.Printf("playing now: %s\n", fileName)
+	cmd := exec.Command("vlc", fileName, "--sub-filter=marq{marquee=test,color=0x00FF00,position=8}")
 
-	// if err := cmd.Run(); err != nil {
-		// log.Fatal(err)
-	// }
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
+	}
+}
 
-	fmt.Println(fileName)
+func playMixMedia(content []MediaItem) {
 	if err := vlc.Init("--fullscreen"); err != nil {
 		log.Fatal(err)
 	}
 	defer vlc.Release()
 
-	// Create a new player.
-	player, err := vlc.NewPlayer()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func() {
-		player.Stop()
-		player.Release()
-	}()
+	for x, item := range content {
+		fmt.Printf("item %d - %s\n", x, item.AbsPath)
 
-	media, err := player.LoadMediaFromPath("test.mp4")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer media.Release()
+		// Create a new player.
+		player, err := vlc.NewPlayer()
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer player.Release()
 
-	marquee := player.Marquee()
-	marquee.Enable(true)
-	marquee.SetText("TESTING TESTING\nNew Line\nOne more\nLast")
-	color := color.RGBA{
-		R: 255,
-		G: 0,
-		B: 0,
-		A: 255,
-	}
-	marquee.SetColor(color)
-	marquee.SetOpacity(100)
-	marquee.SetPosition(vlc.PositionBottomRight)
-	marquee.SetText("TESTING TESTING\nNew Line\nOne more\nLast")
+		media, err := player.LoadMediaFromPath(item.AbsPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer media.Release()
 
-	// Retrieve player event manager.
-	manager, err := player.EventManager()
-	if err != nil {
-		log.Fatal(err)
-	}
+		marquee := player.Marquee()
+		marquee.Enable(true)
+		marquee.SetText("TESTING TESTING\nNew Line\nOne more\nLast")
+		color := color.RGBA{
+			R: 255,
+			G: 0,
+			B: 0,
+			A: 255,
+		}
+		marquee.SetColor(color)
+		marquee.SetOpacity(100)
+		marquee.SetPosition(vlc.PositionBottomRight)
 
-	// Register the media end reached event with the event manager.
-	quit := make(chan struct{})
-	eventCallback := func(event vlc.Event, userData interface{}) {
-		close(quit)
-	}
+		// Retrieve player event manager.
+		manager, err := player.EventManager()
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	eventID, err := manager.Attach(vlc.MediaPlayerEndReached, eventCallback, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer manager.Detach(eventID)
+		// Register the media end reached event with the event manager.
+		quit := make(chan struct{})
+		eventCallback := func(event vlc.Event, userData interface{}) {
+			close(quit)
+		}
 
-	// Start playing the media.
-	if err = player.Play(); err != nil {
-		log.Fatal(err)
-	}
+		eventID, err := manager.Attach(vlc.MediaPlayerEndReached, eventCallback, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer manager.Detach(eventID)
 
-	<-quit // }
+		// Start playing the media.
+		if err = player.Play(); err != nil {
+			log.Fatal(err)
+		}
+		<-quit //
+	}
 }

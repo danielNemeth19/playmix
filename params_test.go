@@ -113,10 +113,28 @@ func TestSetSecondsError(t *testing.T) {
 	assert.ErrorRaised(t, "CanSet error should be raised", err, true)
 }
 
+func TestSetTextValue(t *testing.T) {
+    o := Options{}
+    o.SetText("text=This should be set")
+    assert.Equal(t, "Text option should be set", o.Text, "This should be set")
+
+    o.SetText(`text=First line\nSecond line`)
+    assert.Equal(t, "Text option should be set", o.Text, "First line\nSecond line")
+}
+
+func TestSetTextError(t *testing.T) {
+    o := Options{}
+    err := o.SetText("text")
+	assert.ErrorRaised(t, "Setting text should raise error without value", err, true)
+
+    err = o.SetText("text=")
+	assert.ErrorRaised(t, "Setting text should raise error without value", err, true)
+}
+
 func TestSetOptionsNoAudio(t *testing.T) {
 	p := Params{}
 	p.setOptions("no-audio")
-	assert.Equal(t, "Options for audio should be set", p.options.audio, false)
+	assert.Equal(t, "Options for audio should be set", p.options.Audio, false)
 }
 
 func TestSetOptionsStartTime(t *testing.T) {
@@ -124,7 +142,7 @@ func TestSetOptionsStartTime(t *testing.T) {
 	err := p.setOptions("start-time=60")
 	assert.Equal(t, "no error raised", err, nil)
 	assert.Equal(t, "Option for start-time should be set", p.options.StartTime, 60)
-	assert.Equal(t, "Option audio should default to true", p.options.audio, true)
+	assert.Equal(t, "Option audio should default to true", p.options.Audio, true)
 }
 
 func TestSetOptionsStartTimeRaisesError(t *testing.T) {
@@ -138,7 +156,7 @@ func TestSetOptionsEndTime(t *testing.T) {
 	err := p.setOptions("stop-time=120")
 	assert.Equal(t, "no error raised", err, nil)
 	assert.Equal(t, "Option for end-time should be set", p.options.StopTime, 120)
-	assert.Equal(t, "Option audio should default to true", p.options.audio, true)
+	assert.Equal(t, "Option audio should default to true", p.options.Audio, true)
 }
 
 func TestSetOptionsEndTimeRaisesError(t *testing.T) {
@@ -150,5 +168,26 @@ func TestSetOptionsEndTimeRaisesError(t *testing.T) {
 func TestSetOptionsNoOptions(t *testing.T) {
 	p := Params{}
 	p.setOptions("")
-	assert.Equal(t, "If no option struct should be empty", p.options, Options{audio: true, StartTime: 0, StopTime: 0})
+    assert.Equal(t, "If no option struct should be empty", p.options, Options{Audio: true, StartTime: 0, StopTime: 0, Text: ""})
 }
+
+func TestSetOptionsUnrecognized(t *testing.T) {
+	p := Params{}
+    err := p.setOptions("unrecognized-option")
+	assert.ErrorRaised(t, "Unrecognized option should raise an error", err, true)
+}
+
+func TestSetOptionsText(t *testing.T) {
+	p := Params{}
+    err := p.setOptions("text=overlay-text-to-show")
+    assert.Equal(t, "no error raised", err, nil)
+	assert.Equal(t, "Option for text should be set", p.options.Text, "overlay-text-to-show")
+	assert.Equal(t, "Option audio should default to true", p.options.Audio, true)
+}
+
+func TestSetOptionsTextRaisesError(t *testing.T) {
+	p := Params{}
+	err := p.setOptions("textWithout")
+	assert.ErrorRaised(t, "Text without value should raise an error", err, true)
+}
+

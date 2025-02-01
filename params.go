@@ -45,13 +45,14 @@ type Params struct {
 }
 
 type Options struct {
-	audio     bool
+	Audio     bool
 	StartTime uint16
 	StopTime  uint16
+	Text      string
 }
 
 func (o *Options) StringifyAudio() string {
-	if !o.audio {
+	if !o.Audio {
 		return "no-audio"
 	}
 	return ""
@@ -82,6 +83,16 @@ func (o *Options) SetSeconds(field string, opt string) error {
 	val := reflect.ValueOf(uint16(seconds))
 	fieldValue.Set(val)
 	return nil
+}
+
+func (o *Options) SetText(opt string) error {
+    parts := strings.SplitN(opt, "=", 2)
+    if len(parts) < 2 || parts[1] == "" {
+        return fmt.Errorf("Text option missing value: %s\n", opt)
+    }
+    text := strings.ReplaceAll(parts[1], `\n`, "\n")
+    o.Text = text
+    return nil
 }
 
 func (p *Params) setFileName(fn string) error {
@@ -125,11 +136,11 @@ func (p *Params) setFolderParams(includeF, skipF string) error {
 
 func (p *Params) setOptions(options string) error {
 	opts := parseParam(options)
-	p.options = Options{audio: true}
+	p.options = Options{Audio: true}
 	for _, opt := range opts {
 		switch {
 		case opt == "no-audio":
-			p.options.audio = false
+			p.options.Audio = false
 		case strings.HasPrefix(opt, "start-time"):
 			err := p.options.SetSeconds("StartTime", opt)
 			if err != nil {
@@ -140,6 +151,13 @@ func (p *Params) setOptions(options string) error {
 			if err != nil {
 				return fmt.Errorf("Int conversion failed for end-time: %s\n", opt)
 			}
+        case strings.HasPrefix(opt, "text"):
+            err := p.options.SetText(opt)
+			if err != nil {
+                return fmt.Errorf("Error setting text: %s\n", opt)
+			}
+		default:
+			return fmt.Errorf("Unrecognized option: %s\n", opt)
 		}
 	}
 	return nil

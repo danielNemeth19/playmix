@@ -7,7 +7,7 @@ import (
 	vlc "github.com/adrg/libvlc-go/v3"
 )
 
-func playMixList(fileName string) {
+func playMixList(fileName string, options Options) {
 	if err := vlc.Init("--fullscreen"); err != nil {
 		log.Fatal(err)
 	}
@@ -49,26 +49,10 @@ func playMixList(fileName string) {
 		log.Fatal(err)
 	}
 
-	marqueeSetter := func(event vlc.Event, userData interface{}) {
-		player, err := listPlayer.Player()
-		if err != nil {
-			log.Fatal(err)
-		}
-		marquee := player.Marquee()
-		marquee.Enable(true)
-		marquee.SetText("TESTING TESTING\nTESTING TESTING")
-		color := color.RGBA{
-			R: 255,
-			G: 0,
-			B: 0,
-			A: 255,
-		}
-		marquee.SetColor(color)
-		marquee.SetOpacity(100)
-		marquee.SetPosition(vlc.PositionBottomLeft)
-	}
+	playerEventID, err := playerManager.Attach(vlc.MediaPlayerPlaying, func(e vlc.Event, _ interface{}) {
+		setMarquee(player, options.Text)
+	}, nil)
 
-	playerEventID, err := playerManager.Attach(vlc.MediaPlayerPlaying, marqueeSetter, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -97,4 +81,19 @@ func playMixList(fileName string) {
 		log.Fatal(err)
 	}
 	<-quit
+}
+
+func setMarquee(player *vlc.Player, text string) {
+	marquee := player.Marquee()
+	marquee.Enable(true)
+	marquee.SetText(text)
+	color := color.RGBA{
+		R: 255,
+		G: 0,
+		B: 0,
+		A: 255,
+	}
+	marquee.SetColor(color)
+	marquee.SetOpacity(100)
+	marquee.SetPosition(vlc.PositionBottomLeft)
 }

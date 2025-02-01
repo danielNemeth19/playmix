@@ -441,7 +441,7 @@ func TestWritePlayList(t *testing.T) {
 			Id:       0,
 		},
 	}
-	originalPl := buildPlayList(items, Options{audio: true})
+	originalPl := buildPlayList(items, Options{Audio: true})
 	writePlayList(originalPl, &buf)
 	output := strings.Split(buf.String(), "\n")
 	assert.Equal(t, "Output should be 14 rows", len(output), 14)
@@ -472,7 +472,7 @@ func TestWritePlayListWithNoAudioOption(t *testing.T) {
 			Id:       0,
 		},
 	}
-	originalPl := buildPlayList(items, Options{audio: false})
+	originalPl := buildPlayList(items, Options{Audio: false})
 	writePlayList(originalPl, &buf)
 	output := strings.Split(buf.String(), "\n")
 	assert.Equal(t, "Output should be 15 rows", len(output), 15)
@@ -493,7 +493,7 @@ func TestWritePlayListWithStartOption(t *testing.T) {
 			Id:       0,
 		},
 	}
-	originalPl := buildPlayList(items, Options{audio: true, StartTime: 50})
+	originalPl := buildPlayList(items, Options{Audio: true, StartTime: 50})
 	writePlayList(originalPl, &buf)
 	output := strings.Split(buf.String(), "\n")
 	assert.Equal(t, "Output should be 15 rows", len(output), 15)
@@ -514,7 +514,7 @@ func TestWritePlayListWithEndOption(t *testing.T) {
 			Id:       0,
 		},
 	}
-	originalPl := buildPlayList(items, Options{audio: true, StopTime: 50})
+	originalPl := buildPlayList(items, Options{Audio: true, StopTime: 50})
 	writePlayList(originalPl, &buf)
 	output := strings.Split(buf.String(), "\n")
 	assert.Equal(t, "Output should be 15 rows", len(output), 15)
@@ -535,7 +535,7 @@ func TestWritePlayListWithAllOption(t *testing.T) {
 			Id:       0,
 		},
 	}
-	originalPl := buildPlayList(items, Options{audio: false, StartTime: 30, StopTime: 50})
+	originalPl := buildPlayList(items, Options{Audio: false, StartTime: 30, StopTime: 50})
 	writePlayList(originalPl, &buf)
 	output := strings.Split(buf.String(), "\n")
 	assert.Equal(t, "Output should be 15 rows", len(output), 17)
@@ -562,7 +562,7 @@ func TestBuildPlaylist(t *testing.T) {
 			Id:       0,
 		},
 	}
-	pl := buildPlayList(items, Options{audio: false, StartTime: 100, StopTime: 180})
+	pl := buildPlayList(items, Options{Audio: false, StartTime: 100, StopTime: 180})
 	assert.Equal(t, "Should have correct Xmlns value", pl.Xmlns, "http://xspf.org/ns/0/")
 	assert.Equal(t, "Should have correct XmlnsVlc value", pl.XmlnsVlc, "http://www.videolan.org/vlc/playlist/ns/0/")
 	assert.Equal(t, "Should have correct version", pl.Version, "1")

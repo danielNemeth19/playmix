@@ -33,6 +33,7 @@ This path will be recursively searched for all .mp4 files, respecting the below 
     -mindur                     Consider only files with a duration longer
                                 than the specified value (in seconds)
     -maxdur                     Consider only files with a duration shorter
+                                than the specified value (in seconds)
     -include                    Folders to consider
     -skip                       Folders to skip
 Both `include` and `skip` accepts a comma-separated list of folder names. The two option is mutually exclusive.
@@ -48,15 +49,16 @@ Both `include` and `skip` accepts a comma-separated list of folder names. The tw
     -options                    Allows for additional settings: it accepts a comma-
                                 separated list of options
 The available options are:
-- `no-audio`: Excludes audio from the playlist.
-- `start-time=<seconds>`: Sets the start time for the playlist in seconds.
-- `stop-time=<seconds>`: Sets the stop time for the playlist in seconds.
+- `no-audio`: Excludes audio from the media item.
+- `start-time=<seconds>`: Sets the start time for the media item in seconds.
+- `stop-time=<seconds>`: Sets the stop time for the media item in seconds.
+- `text={text-to-set}`: Displays {text-to-set} as overlay marquee text on video
 
 Example usage:
 ```
 -options="no-audio,start-time=30,stop-time=120"
 ```
-This example will exclude audio, start the playlist at 30 seconds, and stop it at 120 seconds.
+This example will exclude audio, start to play the media item at 30 seconds, and stop it at 120 seconds.
 
 ## File format
 XSPF is a playlist in xml format - it is a free and open format.

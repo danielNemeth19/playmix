@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -42,6 +43,7 @@ type Params struct {
 	options     Options
 	fdate       time.Time
 	tdate       time.Time
+	optFile     string
 }
 
 type Options struct {
@@ -86,13 +88,13 @@ func (o *Options) SetSeconds(field string, opt string) error {
 }
 
 func (o *Options) SetText(opt string) error {
-    parts := strings.SplitN(opt, "=", 2)
-    if len(parts) < 2 || parts[1] == "" {
-        return fmt.Errorf("Text option missing value: %s\n", opt)
-    }
-    text := strings.ReplaceAll(parts[1], `\n`, "\n")
-    o.Text = text
-    return nil
+	parts := strings.SplitN(opt, "=", 2)
+	if len(parts) < 2 || parts[1] == "" {
+		return fmt.Errorf("Text option missing value: %s\n", opt)
+	}
+	text := strings.ReplaceAll(parts[1], `\n`, "\n")
+	o.Text = text
+	return nil
 }
 
 func (p *Params) setFileName(fn string) error {
@@ -106,6 +108,18 @@ func (p *Params) setFileName(fn string) error {
 		p.fileName = fn + playListExtension
 	}
 	return nil
+}
+
+func (p *Params) setOptFile(fn string) error {
+    if fn == "" {
+        return nil
+    }
+    _, err := os.Stat(fn)
+    if err != nil {
+        return fmt.Errorf("File cannot be opened: %s", fn)
+    }
+    p.optFile = fn
+    return nil
 }
 
 func (p *Params) setDateParams(fdate, tdate string) error {
@@ -151,10 +165,10 @@ func (p *Params) setOptions(options string) error {
 			if err != nil {
 				return fmt.Errorf("Int conversion failed for end-time: %s\n", opt)
 			}
-        case strings.HasPrefix(opt, "text"):
-            err := p.options.SetText(opt)
+		case strings.HasPrefix(opt, "text"):
+			err := p.options.SetText(opt)
 			if err != nil {
-                return fmt.Errorf("Error setting text: %s\n", opt)
+				return fmt.Errorf("Error setting text: %s\n", opt)
 			}
 		default:
 			return fmt.Errorf("Unrecognized option: %s\n", opt)
@@ -177,6 +191,7 @@ func getParams() (*Params, error) {
 	includeF := flag.String("include", "", "Folders to consider")
 	skipF := flag.String("skip", "", "Folders to skip")
 	options := flag.String("options", "", "Options to use:start-time, stop-time, no-audio")
+	optFile := flag.String("opt_file", "", "File to set text options")
 	flag.Parse()
 	err := validateRatio(p.ratio)
 	if err != nil {
@@ -198,5 +213,10 @@ func getParams() (*Params, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = p.setOptFile(*optFile)
+	if err != nil {
+		return nil, err
+	}
+    fmt.Printf("params: %v\n", p.optFile)
 	return p, nil
 }

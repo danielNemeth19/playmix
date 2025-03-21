@@ -23,3 +23,6 @@ profiling
 # Test files & folder
 plfiles
 *.xspf
+
+# Options
+options.json

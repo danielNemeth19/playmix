@@ -38,3 +38,13 @@ type PlayList struct {
 	Title    string    `xml:"title"`
 	Tl       TrackList `xml:"trackList"`
 }
+
+type MarqueeOpts struct {
+	Marquee Marquee `json:"marquee"`
+}
+
+type Marquee struct {
+	Text     string `json:"text,omitempty"`
+	Opacity  int    `json:"opacity,omitempty"`
+	Position string `json:"position,omitempty"`
+}

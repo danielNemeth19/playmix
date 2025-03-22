@@ -114,20 +114,20 @@ func TestSetSecondsError(t *testing.T) {
 }
 
 func TestSetTextValue(t *testing.T) {
-    o := Options{}
-    o.SetText("text=This should be set")
-    assert.Equal(t, "Text option should be set", o.Text, "This should be set")
+	o := Options{}
+	o.SetText("text=This should be set")
+	assert.Equal(t, "Text option should be set", o.Text, "This should be set")
 
-    o.SetText(`text=First line\nSecond line`)
-    assert.Equal(t, "Text option should be set", o.Text, "First line\nSecond line")
+	o.SetText(`text=First line\nSecond line`)
+	assert.Equal(t, "Text option should be set", o.Text, "First line\nSecond line")
 }
 
 func TestSetTextError(t *testing.T) {
-    o := Options{}
-    err := o.SetText("text")
+	o := Options{}
+	err := o.SetText("text")
 	assert.ErrorRaised(t, "Setting text should raise error without value", err, true)
 
-    err = o.SetText("text=")
+	err = o.SetText("text=")
 	assert.ErrorRaised(t, "Setting text should raise error without value", err, true)
 }
 
@@ -168,19 +168,19 @@ func TestSetOptionsEndTimeRaisesError(t *testing.T) {
 func TestSetOptionsNoOptions(t *testing.T) {
 	p := Params{}
 	p.setOptions("")
-    assert.Equal(t, "If no option struct should be empty", p.options, Options{Audio: true, StartTime: 0, StopTime: 0, Text: ""})
+	assert.Equal(t, "If no option struct should be empty", p.options, Options{Audio: true, StartTime: 0, StopTime: 0, Text: ""})
 }
 
 func TestSetOptionsUnrecognized(t *testing.T) {
 	p := Params{}
-    err := p.setOptions("unrecognized-option")
+	err := p.setOptions("unrecognized-option")
 	assert.ErrorRaised(t, "Unrecognized option should raise an error", err, true)
 }
 
 func TestSetOptionsText(t *testing.T) {
 	p := Params{}
-    err := p.setOptions("text=overlay-text-to-show")
-    assert.Equal(t, "no error raised", err, nil)
+	err := p.setOptions("text=overlay-text-to-show")
+	assert.Equal(t, "no error raised", err, nil)
 	assert.Equal(t, "Option for text should be set", p.options.Text, "overlay-text-to-show")
 	assert.Equal(t, "Option audio should default to true", p.options.Audio, true)
 }
@@ -190,4 +190,3 @@ func TestSetOptionsTextRaisesError(t *testing.T) {
 	err := p.setOptions("textWithout")
 	assert.ErrorRaised(t, "Text without value should raise an error", err, true)
 }
-

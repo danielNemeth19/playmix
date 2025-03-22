@@ -7,7 +7,7 @@ import (
 	vlc "github.com/adrg/libvlc-go/v3"
 )
 
-func playMixList(fileName string, options Options) {
+func playMixList(fileName string, marquee Marquee) {
 	if err := vlc.Init("--fullscreen"); err != nil {
 		log.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func playMixList(fileName string, options Options) {
 	}
 
 	playerEventID, err := playerManager.Attach(vlc.MediaPlayerPlaying, func(e vlc.Event, _ interface{}) {
-		setMarquee(player, options.Text)
+		setMarquee(player, marquee)
 	}, nil)
 
 	if err != nil {
@@ -83,10 +83,10 @@ func playMixList(fileName string, options Options) {
 	<-quit
 }
 
-func setMarquee(player *vlc.Player, text string) {
+func setMarquee(player *vlc.Player, marqueeOpts Marquee) {
 	marquee := player.Marquee()
 	marquee.Enable(true)
-	marquee.SetText(text)
+	marquee.SetText(marqueeOpts.Text)
 	color := color.RGBA{
 		R: 255,
 		G: 0,
@@ -94,6 +94,6 @@ func setMarquee(player *vlc.Player, text string) {
 		A: 255,
 	}
 	marquee.SetColor(color)
-	marquee.SetOpacity(100)
+	marquee.SetOpacity(marqueeOpts.Opacity)
 	marquee.SetPosition(vlc.PositionCenter)
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+    "io/fs"
 	"flag"
 	"fmt"
 	"math"
@@ -44,6 +46,7 @@ type Params struct {
 	fdate       time.Time
 	tdate       time.Time
 	optFile     string
+	marqueeOpts MarqueeOpts
 }
 
 type Options struct {
@@ -110,18 +113,6 @@ func (p *Params) setFileName(fn string) error {
 	return nil
 }
 
-func (p *Params) setOptFile(fn string) error {
-    if fn == "" {
-        return nil
-    }
-    _, err := os.Stat(fn)
-    if err != nil {
-        return fmt.Errorf("File cannot be opened: %s", fn)
-    }
-    p.optFile = fn
-    return nil
-}
-
 func (p *Params) setDateParams(fdate, tdate string) error {
 	fd, err := time.Parse("20060102", fdate)
 	if err != nil {
@@ -177,6 +168,28 @@ func (p *Params) setOptions(options string) error {
 	return nil
 }
 
+func (p *Params) parseOptFile(fn string) error {
+	if fn == "" {
+		return nil
+	}
+	// _, err := os.Stat(fn)
+	if err != nil {
+		return fmt.Errorf("File cannot be opened: %s", fn)
+	}
+	data, err := os.ReadFile(fn)
+	if err != nil {
+		return fmt.Errorf("Error reading file: %s", err)
+	}
+
+	var m MarqueeOpts
+	err = json.Unmarshal(data, &m)
+	if err != nil {
+		return fmt.Errorf("Error marshalling options file: %s", err)
+	}
+	p.marqueeOpts = m
+	return nil
+}
+
 func getParams() (*Params, error) {
 	p := &Params{}
 	flag.BoolVar(&p.extFlag, "ext", false, "If specified, collects unique file extensions")
@@ -191,7 +204,7 @@ func getParams() (*Params, error) {
 	includeF := flag.String("include", "", "Folders to consider")
 	skipF := flag.String("skip", "", "Folders to skip")
 	options := flag.String("options", "", "Options to use:start-time, stop-time, no-audio")
-	optFile := flag.String("opt_file", "", "File to set text options")
+	optFile := flag.String("opt_file", "", "File to set options")
 	flag.Parse()
 	err := validateRatio(p.ratio)
 	if err != nil {
@@ -213,10 +226,9 @@ func getParams() (*Params, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = p.setOptFile(*optFile)
+	err = p.parseOptFile(*optFile)
 	if err != nil {
 		return nil, err
 	}
-    fmt.Printf("params: %v\n", p.optFile)
 	return p, nil
 }

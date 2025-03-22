@@ -47,6 +47,6 @@ func main() {
 	// TODO: maybe make duration bucket summary optional too
 	summary.getData(os.Stdout)
 	if params.playFlag {
-		playMixList(params.fileName, params.options)
+		playMixList(params.fileName, params.marqueeOpts.Marquee)
 	}
 }

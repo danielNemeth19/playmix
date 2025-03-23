@@ -2,9 +2,10 @@ package main
 
 import (
 	"encoding/json"
-    "io/fs"
 	"flag"
 	"fmt"
+	"io"
+	"io/fs"
 	"math"
 	"os"
 	"path/filepath"
@@ -168,23 +169,24 @@ func (p *Params) setOptions(options string) error {
 	return nil
 }
 
-func (p *Params) parseOptFile(fn string) error {
+func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	if fn == "" {
 		return nil
 	}
-	// _, err := os.Stat(fn)
+	file, err := fsys.Open(fn)
 	if err != nil {
 		return fmt.Errorf("File cannot be opened: %s", fn)
 	}
-	data, err := os.ReadFile(fn)
-	if err != nil {
-		return fmt.Errorf("Error reading file: %s", err)
-	}
+    defer file.Close()
 
-	var m MarqueeOpts
+    data, err := io.ReadAll(file)
+    if err != nil {
+		return fmt.Errorf("File cannot be read: %s", fn)
+    }
+    var m MarqueeOpts
 	err = json.Unmarshal(data, &m)
 	if err != nil {
-		return fmt.Errorf("Error marshalling options file: %s", err)
+		return fmt.Errorf("Error unmarshalling options file: %s", err)
 	}
 	p.marqueeOpts = m
 	return nil
@@ -226,7 +228,8 @@ func getParams() (*Params, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = p.parseOptFile(*optFile)
+    fsys := os.DirFS(".")
+	err = p.parseOptFile(fsys, *optFile)
 	if err != nil {
 		return nil, err
 	}

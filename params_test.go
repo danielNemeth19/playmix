@@ -3,6 +3,7 @@ package main
 import (
 	"playmix/internal/assert"
 	"testing"
+	"testing/fstest"
 	"time"
 )
 
@@ -189,4 +190,52 @@ func TestSetOptionsTextRaisesError(t *testing.T) {
 	p := Params{}
 	err := p.setOptions("textWithout")
 	assert.ErrorRaised(t, "Text without value should raise an error", err, true)
+}
+
+func TestParseOptFile(t *testing.T) {
+    p := Params{}
+    data := []byte(`{"marquee": {"text": "test", "opacity":21, "position":"PositionCenter"}}`)
+	fn := "options.json"
+	f := fstest.MapFS{
+		fn: {
+			Data:    data,
+			Mode:    0755,
+			ModTime: time.Now(),
+		},
+	}
+    err := p.parseOptFile(f, fn)
+    assert.Equal(t, "Parsing should succeed", err, nil)
+    expectedMarquee := Marquee{
+        Text: "test",
+        Opacity: 21,
+        Position: "PositionCenter",
+    }
+    assert.Equal(t, "Marquee should be set", p.marqueeOpts.Marquee, expectedMarquee)
+}
+
+func TestParseOptFileNoFile(t *testing.T) {
+    p := Params{}
+    err := p.parseOptFile(fstest.MapFS{}, "")
+    assert.Equal(t, "No opts file provided should not raise error", err, nil)
+}
+
+func TestParseOptFileInvalidFileName(t *testing.T) {
+    p := Params{}
+    err := p.parseOptFile(fstest.MapFS{}, "no_such_file.json")
+    assert.ErrorRaised(t, "Invalid file name should raise error", err, true)
+}
+
+func TestParseOptUnMarshallError(t *testing.T) {
+    p := Params{}
+    data := []byte("\\")
+	fn := "options.json"
+	f := fstest.MapFS{
+		fn: {
+			Data:    data,
+			Mode:    0755,
+			ModTime: time.Now(),
+		},
+	}
+    err := p.parseOptFile(f, fn)
+    assert.ErrorRaised(t, "Should raise unmarshall error", err, true)
 }

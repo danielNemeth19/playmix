@@ -177,16 +177,20 @@ func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	if err != nil {
 		return fmt.Errorf("File cannot be opened: %s", fn)
 	}
-    defer file.Close()
+	defer file.Close()
 
-    data, err := io.ReadAll(file)
-    if err != nil {
+	data, err := io.ReadAll(file)
+	if err != nil {
 		return fmt.Errorf("File cannot be read: %s", fn)
-    }
-    var m MarqueeOpts
+	}
+	var m MarqueeOpts
 	err = json.Unmarshal(data, &m)
 	if err != nil {
 		return fmt.Errorf("Error unmarshalling options file: %s", err)
+	}
+	found := m.Marquee.validatePosition()
+	if !found {
+		return fmt.Errorf("Position %s is Unrecognized\n", m.Marquee.Position)
 	}
 	p.marqueeOpts = m
 	return nil
@@ -228,7 +232,7 @@ func getParams() (*Params, error) {
 	if err != nil {
 		return nil, err
 	}
-    fsys := os.DirFS(".")
+	fsys := os.DirFS(".")
 	err = p.parseOptFile(fsys, *optFile)
 	if err != nil {
 		return nil, err

@@ -1,6 +1,9 @@
 package main
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	vlc "github.com/adrg/libvlc-go/v3"
+)
 
 var mediaExtensions = []string{".mp4", ".mkv", ".avi", ".flv", ".mpeg"}
 
@@ -9,6 +12,19 @@ const (
 	Xmlns                = "http://xspf.org/ns/0/"
 	XmlnsVlc             = "http://www.videolan.org/vlc/playlist/ns/0/"
 )
+
+var textPositionMap = map[string]vlc.Position{
+	"disable":     vlc.PositionDisable,
+	"center":      vlc.PositionCenter,
+	"left":        vlc.PositionLeft,
+	"right":       vlc.PositionRight,
+	"top":         vlc.PositionTop,
+	"topleft":     vlc.PositionTopLeft,
+	"topright":    vlc.PositionTopRight,
+	"bottom":      vlc.PositionBottom,
+	"bottomleft":  vlc.PositionBottomLeft,
+	"bottomright": vlc.PositionBottomRight,
+}
 
 type Extension struct {
 	XMLName     xml.Name `xml:"extension"`
@@ -47,4 +63,17 @@ type Marquee struct {
 	Text     string `json:"text,omitempty"`
 	Opacity  int    `json:"opacity,omitempty"`
 	Position string `json:"position,omitempty"`
+}
+
+func (m Marquee) validatePosition() bool {
+	_, found := textPositionMap[m.Position]
+	return found
+}
+
+func (m Marquee) remapPosition() vlc.Position {
+	position, found := textPositionMap[m.Position]
+	if !found {
+		return vlc.PositionDisable
+	}
+	return position
 }

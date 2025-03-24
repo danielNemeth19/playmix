@@ -6,6 +6,14 @@ import (
 	"time"
 )
 
+type FakeReadError struct {
+	message string
+}
+
+func (f FakeReadError) Error() string {
+    return f.message
+}
+
 type FakeFile struct{}
 
 func (f FakeFile) Stat() (fs.FileInfo, error) {
@@ -14,7 +22,8 @@ func (f FakeFile) Stat() (fs.FileInfo, error) {
 }
 
 func (f FakeFile) Read([]byte) (int, error) {
-	return 10, nil
+    error := FakeReadError{message: "Faked read error"}
+	return 10, &error
 }
 
 func (f FakeFile) Close() error {

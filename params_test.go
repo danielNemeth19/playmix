@@ -2,6 +2,7 @@ package main
 
 import (
 	"playmix/internal/assert"
+	"playmix/internal/mocks"
 	"testing"
 	"testing/fstest"
 	"time"
@@ -193,8 +194,8 @@ func TestSetOptionsTextRaisesError(t *testing.T) {
 }
 
 func TestParseOptFile(t *testing.T) {
-    p := Params{}
-    data := []byte(`{"marquee": {"text": "test", "opacity":21, "position":"PositionCenter"}}`)
+	p := Params{}
+	data := []byte(`{"marquee": {"text": "test", "opacity":50, "position":"center"}}`)
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {
@@ -203,31 +204,38 @@ func TestParseOptFile(t *testing.T) {
 			ModTime: time.Now(),
 		},
 	}
-    err := p.parseOptFile(f, fn)
-    assert.Equal(t, "Parsing should succeed", err, nil)
-    expectedMarquee := Marquee{
-        Text: "test",
-        Opacity: 21,
-        Position: "PositionCenter",
-    }
-    assert.Equal(t, "Marquee should be set", p.marqueeOpts.Marquee, expectedMarquee)
+	err := p.parseOptFile(f, fn)
+	assert.Equal(t, "Parsing should succeed", err, nil)
+	expectedMarquee := Marquee{
+		Text:     "test",
+		Opacity:  50,
+		Position: "center",
+	}
+	assert.Equal(t, "Marquee should be set", p.marqueeOpts.Marquee, expectedMarquee)
 }
 
 func TestParseOptFileNoFile(t *testing.T) {
-    p := Params{}
-    err := p.parseOptFile(fstest.MapFS{}, "")
-    assert.Equal(t, "No opts file provided should not raise error", err, nil)
+	p := Params{}
+	err := p.parseOptFile(fstest.MapFS{}, "")
+	assert.Equal(t, "No opts file provided should not raise error", err, nil)
 }
 
-func TestParseOptFileInvalidFileName(t *testing.T) {
-    p := Params{}
-    err := p.parseOptFile(fstest.MapFS{}, "no_such_file.json")
-    assert.ErrorRaised(t, "Invalid file name should raise error", err, true)
+func TestParseOptFileOpenError(t *testing.T) {
+	p := Params{}
+	err := p.parseOptFile(fstest.MapFS{}, "no_such_file.json")
+	assert.ErrorRaised(t, "Invalid file name should raise error", err, true)
+}
+
+func TestParseOptFileReadAllError(t *testing.T) {
+	p := Params{}
+	fsys := mocks.FakeSys{}
+	err := p.parseOptFile(fsys, "readMock.json")
+	assert.ErrorRaised(t, "Invalid file name should raise error", err, true)
 }
 
 func TestParseOptUnMarshallError(t *testing.T) {
-    p := Params{}
-    data := []byte("\\")
+	p := Params{}
+	data := []byte("\\")
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {
@@ -236,6 +244,21 @@ func TestParseOptUnMarshallError(t *testing.T) {
 			ModTime: time.Now(),
 		},
 	}
-    err := p.parseOptFile(f, fn)
-    assert.ErrorRaised(t, "Should raise unmarshall error", err, true)
+	err := p.parseOptFile(f, fn)
+	assert.ErrorRaised(t, "Should raise unmarshall error", err, true)
+}
+
+func TestParseOptFileInvalidPosition(t *testing.T) {
+	p := Params{}
+	data := []byte(`{"marquee": {"text": "test", "opacity":100, "position":"invalid"}}`)
+	fn := "options.json"
+	f := fstest.MapFS{
+		fn: {
+			Data:    data,
+			Mode:    0755,
+			ModTime: time.Now(),
+		},
+	}
+	err := p.parseOptFile(f, fn)
+	assert.ErrorRaised(t, "Should raise unrecognized position error", err, true)
 }

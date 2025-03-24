@@ -95,5 +95,5 @@ func setMarquee(player *vlc.Player, marqueeOpts Marquee) {
 	}
 	marquee.SetColor(color)
 	marquee.SetOpacity(marqueeOpts.Opacity)
-	marquee.SetPosition(vlc.PositionCenter)
+	marquee.SetPosition(marqueeOpts.remapPosition())
 }

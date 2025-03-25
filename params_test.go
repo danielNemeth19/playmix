@@ -195,7 +195,7 @@ func TestSetOptionsTextRaisesError(t *testing.T) {
 
 func TestParseOptFile(t *testing.T) {
 	p := Params{}
-	data := []byte(`{"marquee": {"text": "test", "opacity":50, "position":"center"}}`)
+	data := []byte(`{"marquee": {"text": "test", "color":"black", "opacity":50, "position":"center"}}`)
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {
@@ -208,6 +208,7 @@ func TestParseOptFile(t *testing.T) {
 	assert.Equal(t, "Parsing should succeed", err, nil)
 	expectedMarquee := Marquee{
 		Text:     "test",
+		Color:    "black",
 		Opacity:  50,
 		Position: "center",
 	}
@@ -250,7 +251,7 @@ func TestParseOptUnMarshallError(t *testing.T) {
 
 func TestParseOptFileInvalidPosition(t *testing.T) {
 	p := Params{}
-	data := []byte(`{"marquee": {"text": "test", "opacity":100, "position":"invalid"}}`)
+	data := []byte(`{"marquee": {"text": "test", "color": "blue", "opacity":100, "position":"invalid"}}`)
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {
@@ -261,4 +262,19 @@ func TestParseOptFileInvalidPosition(t *testing.T) {
 	}
 	err := p.parseOptFile(f, fn)
 	assert.ErrorRaised(t, "Should raise unrecognized position error", err, true)
+}
+
+func TestParseOptFileInvalidColor(t *testing.T) {
+	p := Params{}
+	data := []byte(`{"marquee": {"text": "test", "color": "invalid", "opacity":100, "position":"center"}}`)
+	fn := "options.json"
+	f := fstest.MapFS{
+		fn: {
+			Data:    data,
+			Mode:    0755,
+			ModTime: time.Now(),
+		},
+	}
+	err := p.parseOptFile(f, fn)
+	assert.ErrorRaised(t, "Should raise unrecognized color error", err, true)
 }

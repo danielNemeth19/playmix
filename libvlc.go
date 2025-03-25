@@ -1,7 +1,6 @@
 package main
 
 import (
-	"image/color"
 	"log"
 
 	vlc "github.com/adrg/libvlc-go/v3"
@@ -87,13 +86,7 @@ func setMarquee(player *vlc.Player, marqueeOpts Marquee) {
 	marquee := player.Marquee()
 	marquee.Enable(true)
 	marquee.SetText(marqueeOpts.Text)
-	color := color.RGBA{
-		R: 255,
-		G: 0,
-		B: 0,
-		A: 255,
-	}
-	marquee.SetColor(color)
+	marquee.SetColor(marqueeOpts.remapColor())
 	marquee.SetOpacity(marqueeOpts.Opacity)
 	marquee.SetPosition(marqueeOpts.remapPosition())
 }

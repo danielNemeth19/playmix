@@ -188,7 +188,11 @@ func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	if err != nil {
 		return fmt.Errorf("Error unmarshalling options file: %s", err)
 	}
-	found := m.Marquee.validatePosition()
+	found := m.Marquee.validateColor()
+	if !found {
+		return fmt.Errorf("Color %s is Unrecognized\n", m.Marquee.Color)
+	}
+	found = m.Marquee.validatePosition()
 	if !found {
 		return fmt.Errorf("Position %s is Unrecognized\n", m.Marquee.Position)
 	}

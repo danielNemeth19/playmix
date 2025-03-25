@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/xml"
 	vlc "github.com/adrg/libvlc-go/v3"
+	"image/color"
 )
 
 var mediaExtensions = []string{".mp4", ".mkv", ".avi", ".flv", ".mpeg"}
@@ -24,6 +25,16 @@ var textPositionMap = map[string]vlc.Position{
 	"bottom":      vlc.PositionBottom,
 	"bottomleft":  vlc.PositionBottomLeft,
 	"bottomright": vlc.PositionBottomRight,
+}
+
+var colorMap = map[string]color.RGBA{
+	"blue":   {0, 0, 255, 255},
+	"yellow": {255, 255, 0, 255},
+	"red":    {255, 0, 0, 255},
+	"black":  {0, 0, 0, 255},
+	"cyan":   {0, 255, 255, 255},
+	"white":  {255, 255, 255, 255},
+	"green":  {0, 255, 0, 255},
 }
 
 type Extension struct {
@@ -61,8 +72,22 @@ type MarqueeOpts struct {
 
 type Marquee struct {
 	Text     string `json:"text,omitempty"`
+	Color    string `json:"color,omitempty"`
 	Opacity  int    `json:"opacity,omitempty"`
 	Position string `json:"position,omitempty"`
+}
+
+func (m Marquee) validateColor() bool {
+	_, found := colorMap[m.Color]
+	return found
+}
+
+func (m Marquee) remapColor() color.RGBA {
+	color, found := colorMap[m.Color]
+	if !found {
+		return colorMap["red"]
+	}
+	return color
 }
 
 func (m Marquee) validatePosition() bool {

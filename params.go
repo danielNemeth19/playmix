@@ -47,7 +47,7 @@ type Params struct {
 	fdate       time.Time
 	tdate       time.Time
 	optFile     string
-	marqueeOpts MarqueeOpts
+	fileOptions FileOptions
 }
 
 type Options struct {
@@ -183,20 +183,21 @@ func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	if err != nil {
 		return fmt.Errorf("File cannot be read: %s", fn)
 	}
-	var m MarqueeOpts
-	err = json.Unmarshal(data, &m)
+	var opt FileOptions
+	err = json.Unmarshal(data, &opt)
+	fmt.Println(opt)
 	if err != nil {
 		return fmt.Errorf("Error unmarshalling options file: %s", err)
 	}
-	found := m.Marquee.validateColor()
+	found := opt.Marquee.validateColor()
 	if !found {
-		return fmt.Errorf("Color %s is Unrecognized\n", m.Marquee.Color)
+		return fmt.Errorf("Color %s is Unrecognized\n", opt.Marquee.Color)
 	}
-	found = m.Marquee.validatePosition()
+	found = opt.Marquee.validatePosition()
 	if !found {
-		return fmt.Errorf("Position %s is Unrecognized\n", m.Marquee.Position)
+		return fmt.Errorf("Position %s is Unrecognized\n", opt.Marquee.Position)
 	}
-	p.marqueeOpts = m
+	p.fileOptions = opt
 	return nil
 }
 

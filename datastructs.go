@@ -66,8 +66,9 @@ type PlayList struct {
 	Tl       TrackList `xml:"trackList"`
 }
 
-type MarqueeOpts struct {
-	Marquee Marquee `json:"marquee"`
+type FileOptions struct {
+	Marquee     Marquee     `json:"marquee"`
+	PlayOptions PlayOptions `json:"play_options"`
 }
 
 type Marquee struct {
@@ -75,6 +76,12 @@ type Marquee struct {
 	Color    string `json:"color,omitempty"`
 	Opacity  int    `json:"opacity,omitempty"`
 	Position string `json:"position,omitempty"`
+}
+
+type PlayOptions struct {
+	Audio     bool   `json:"audio,omitempty"`
+	StartTime uint16 `json:"start_time,omitempty"`
+	StopTime  uint16 `json:"stop_time,omitempty"`
 }
 
 func (m Marquee) validateColor() bool {

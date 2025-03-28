@@ -212,7 +212,7 @@ func TestParseOptFile(t *testing.T) {
 		Opacity:  50,
 		Position: "center",
 	}
-	assert.Equal(t, "Marquee should be set", p.marqueeOpts.Marquee, expectedMarquee)
+	assert.Equal(t, "Marquee should be set", p.fileOptions.Marquee, expectedMarquee)
 }
 
 func TestParseOptFileNoFile(t *testing.T) {

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
+	"io"
 	"io/fs"
 	"log"
 	"net/url"
@@ -11,6 +12,20 @@ import (
 	"strings"
 	"time"
 )
+
+func readInOptFile(fsys fs.FS, fn string) ([]byte, error) {
+	file, err := fsys.Open(fn)
+	if err != nil {
+		return nil, fmt.Errorf("File cannot be opened: %s", fn)
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, fmt.Errorf("File cannot be read: %s", fn)
+	}
+	return data, nil
+}
 
 func getPath() (string, error) {
 	rootPath := os.Getenv("MEDIA_SOURCE")

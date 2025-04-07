@@ -215,16 +215,16 @@ func TestParseOptFile(t *testing.T) {
 	assert.Equal(t, "Marquee should be set", p.fileOptions.Marquee, expectedMarquee)
 }
 
-func TestParseOptFileNoFile(t *testing.T) {
-	p := Params{}
-	err := p.parseOptFile(fstest.MapFS{}, "")
-	assert.Equal(t, "No opts file provided should not raise error", err, nil)
-}
-
 func TestParseOptFileOpenError(t *testing.T) {
 	p := Params{}
 	err := p.parseOptFile(fstest.MapFS{}, "no_such_file.json")
 	assert.ErrorRaised(t, "Invalid file name should raise error", err, true)
+}
+
+func TestParseOptFileNoFileRaisesError(t *testing.T) {
+	p := Params{}
+	err := p.parseOptFile(fstest.MapFS{}, "")
+	assert.ErrorRaised(t, "No file name provided should raise error", err, true)
 }
 
 func TestParseOptFileReadAllError(t *testing.T) {

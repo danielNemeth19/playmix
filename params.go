@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io"
 	"io/fs"
 	"math"
 	"os"
@@ -170,22 +169,12 @@ func (p *Params) setOptions(options string) error {
 }
 
 func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
-	if fn == "" {
-		return nil
-	}
-	file, err := fsys.Open(fn)
+	data, err := readInOptFile(fsys, fn)
 	if err != nil {
-		return fmt.Errorf("File cannot be opened: %s", fn)
-	}
-	defer file.Close()
-
-	data, err := io.ReadAll(file)
-	if err != nil {
-		return fmt.Errorf("File cannot be read: %s", fn)
+		return fmt.Errorf("Something wrong: %s", err)
 	}
 	var opt FileOptions
 	err = json.Unmarshal(data, &opt)
-	fmt.Println(opt)
 	if err != nil {
 		return fmt.Errorf("Error unmarshalling options file: %s", err)
 	}
@@ -238,7 +227,9 @@ func getParams() (*Params, error) {
 		return nil, err
 	}
 	fsys := os.DirFS(".")
-	err = p.parseOptFile(fsys, *optFile)
+	if *optFile != "" {
+		err = p.parseOptFile(fsys, *optFile)
+	}
 	if err != nil {
 		return nil, err
 	}

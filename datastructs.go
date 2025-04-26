@@ -2,8 +2,11 @@ package main
 
 import (
 	"encoding/xml"
-	vlc "github.com/adrg/libvlc-go/v3"
+	"fmt"
 	"image/color"
+	"strconv"
+
+	vlc "github.com/adrg/libvlc-go/v3"
 )
 
 var mediaExtensions = []string{".mp4", ".mkv", ".avi", ".flv", ".mpeg"}
@@ -78,12 +81,6 @@ type Marquee struct {
 	Position string `json:"position,omitempty"`
 }
 
-type PlayOptions struct {
-	Audio     bool   `json:"audio,omitempty"`
-	StartTime uint16 `json:"start_time,omitempty"`
-	StopTime  uint16 `json:"stop_time,omitempty"`
-}
-
 func (m Marquee) validateColor() bool {
 	_, found := colorMap[m.Color]
 	return found
@@ -108,4 +105,33 @@ func (m Marquee) remapPosition() vlc.Position {
 		return vlc.PositionDisable
 	}
 	return position
+}
+
+type PlayOptions struct {
+	Audio     bool   `json:"audio,omitempty"`
+	StartTime uint16 `json:"start_time,omitempty"`
+	StopTime  uint16 `json:"stop_time,omitempty"`
+}
+
+func (p PlayOptions) ValidateTimes() error {
+	if p.StartTime != 0 && p.StopTime != 0 &&
+		(p.StartTime >= p.StopTime) {
+		return fmt.Errorf("Stop time (%d) should be greater than start time (%d)\n", p.StopTime, p.StartTime)
+	}
+	return nil
+}
+
+func (p PlayOptions) StringifyAudio() string {
+	if !p.Audio {
+		return "no-audio"
+	}
+	return ""
+}
+
+func (p PlayOptions) StringifyStartTime() string {
+	return "start-time=" + strconv.Itoa(int(p.StartTime))
+}
+
+func (p PlayOptions) StringifyStopTime() string {
+	return "stop-time=" + strconv.Itoa(int(p.StopTime))
 }

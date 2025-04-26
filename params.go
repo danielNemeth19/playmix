@@ -8,8 +8,6 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"reflect"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -42,62 +40,10 @@ type Params struct {
 	fileName    string
 	includeF    []string
 	skipF       []string
-	options     Options
 	fdate       time.Time
 	tdate       time.Time
 	optFile     string
 	fileOptions FileOptions
-}
-
-type Options struct {
-	Audio     bool
-	StartTime uint16
-	StopTime  uint16
-	Text      string
-}
-
-func (o *Options) StringifyAudio() string {
-	if !o.Audio {
-		return "no-audio"
-	}
-	return ""
-}
-
-func (o *Options) StringifyStartTime() string {
-	return "start-time=" + strconv.Itoa(int(o.StartTime))
-}
-
-func (o *Options) StringifyEndTime() string {
-	return "stop-time=" + strconv.Itoa(int(o.StopTime))
-}
-
-func (o *Options) SetSeconds(field string, opt string) error {
-	parts := strings.Split(opt, "=")
-	seconds, err := strconv.ParseUint(parts[1], 10, 32)
-	if err != nil {
-		return fmt.Errorf("Int conversion failed for: %s\n", opt)
-	}
-	structValue := reflect.ValueOf(o).Elem()
-	fieldValue := structValue.FieldByName(field)
-	if !fieldValue.IsValid() {
-		return fmt.Errorf("field error: %s", field)
-	}
-	if !fieldValue.CanSet() {
-		return fmt.Errorf("cannot set field: %s", field)
-	}
-	val := reflect.ValueOf(uint16(seconds))
-	fieldValue.Set(val)
-	return nil
-}
-
-func (o *Options) SetText(opt string) error {
-	parts := strings.SplitN(opt, "=", 2)
-	if len(parts) < 2 || parts[1] == "" {
-		return fmt.Errorf("Text option missing value: %s\n", opt)
-	}
-	text := strings.ReplaceAll(parts[1], `\n`, "\n")
-	o.Text = text
-	return nil
 }
 
 func (p *Params) setFileName(fn string) error {
@@ -139,35 +85,6 @@ func (p *Params) setFolderParams(includeF, skipF string) error {
 	return nil
 }
 
-func (p *Params) setOptions(options string) error {
-	opts := parseParam(options)
-	p.options = Options{Audio: true}
-	for _, opt := range opts {
-		switch {
-		case opt == "no-audio":
-			p.options.Audio = false
-		case strings.HasPrefix(opt, "start-time"):
-			err := p.options.SetSeconds("StartTime", opt)
-			if err != nil {
-				return fmt.Errorf("Error setting start-time: %s\n", opt)
-			}
-		case strings.HasPrefix(opt, "stop-time"):
-			err := p.options.SetSeconds("StopTime", opt)
-			if err != nil {
-				return fmt.Errorf("Int conversion failed for end-time: %s\n", opt)
-			}
-		case strings.HasPrefix(opt, "text"):
-			err := p.options.SetText(opt)
-			if err != nil {
-				return fmt.Errorf("Error setting text: %s\n", opt)
-			}
-		default:
-			return fmt.Errorf("Unrecognized option: %s\n", opt)
-		}
-	}
-	return nil
-}
-
 func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	data, err := readInOptFile(fsys, fn)
 	if err != nil {
@@ -186,6 +103,10 @@ func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	if !found {
 		return fmt.Errorf("Position %s is Unrecognized\n", opt.Marquee.Position)
 	}
+	err = opt.PlayOptions.ValidateTimes()
+	if err != nil {
+		return err
+	}
 	p.fileOptions = opt
 	return nil
 }
@@ -203,7 +124,6 @@ func getParams() (*Params, error) {
 	tdate := flag.String("tdate", "20300101", "Files created before tdate will be considered")
 	includeF := flag.String("include", "", "Folders to consider")
 	skipF := flag.String("skip", "", "Folders to skip")
-	options := flag.String("options", "", "Options to use:start-time, stop-time, no-audio")
 	optFile := flag.String("opt_file", "", "File to set options")
 	flag.Parse()
 	err := validateRatio(p.ratio)
@@ -219,10 +139,6 @@ func getParams() (*Params, error) {
 		return nil, err
 	}
 	err = p.setFolderParams(*includeF, *skipF)
-	if err != nil {
-		return nil, err
-	}
-	err = p.setOptions(*options)
 	if err != nil {
 		return nil, err
 	}

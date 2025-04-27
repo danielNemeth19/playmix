@@ -221,7 +221,8 @@ func TestCollectMediaContentRaisesWalkError(t *testing.T) {
 	fdate := time.Date(2022, 3, 26, 0, 0, 0, 0, time.UTC)
 	tdate := time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC)
 	f := mocks.FakeSys{}
-	params := Params{fdate: fdate, tdate: tdate, ratio: 100}
+	randomizeOpts := RandomizerOptions{Ratio: 100}
+	params := Params{fdate: fdate, tdate: tdate, RandomizerOptions: randomizeOpts}
 	_, _, err := collectMediaContent("/home/Music", f, params)
 	assert.ErrorRaised(t, "Should raise error", err, true)
 }
@@ -236,7 +237,8 @@ func TestCollectMediaContentRaisesErrorNonMediaFile(t *testing.T) {
 			ModTime: modTime,
 		},
 	}
-	params := Params{fdate: fdate, tdate: tdate, ratio: 100}
+	randomizeOpts := RandomizerOptions{Ratio: 100}
+	params := Params{fdate: fdate, tdate: tdate, RandomizerOptions: randomizeOpts}
 	_, _, err := collectMediaContent("/home/Music", fsys, params)
 	assert.ErrorRaised(t, "Should raise error", err, true)
 }
@@ -245,7 +247,8 @@ func TestCollectMediaContentDuration(t *testing.T) {
 	modTime := time.Date(2020, 3, 26, 0, 0, 0, 0, time.UTC)
 	fdate := time.Date(2000, 3, 26, 0, 0, 0, 0, time.UTC)
 	tdate := time.Date(2030, 3, 26, 0, 0, 0, 0, time.UTC)
-	params := Params{fdate: fdate, tdate: tdate, ratio: 100, minDuration: 30, maxDuration: 60}
+	randomizeOpts := RandomizerOptions{Ratio: 100}
+	params := Params{fdate: fdate, tdate: tdate, minDuration: 30, maxDuration: 60, RandomizerOptions: randomizeOpts}
 	fsys := fstest.MapFS{
 		"should_be_selected.mp4": {
 			Data:    mocks.CreateData(50),
@@ -271,7 +274,8 @@ func TestCollectMediaContentDuration(t *testing.T) {
 func TestCollectMediaContentDateFilter(t *testing.T) {
 	fdate := time.Date(2022, 3, 26, 0, 0, 0, 0, time.UTC)
 	tdate := time.Date(2024, 3, 26, 0, 0, 0, 0, time.UTC)
-	params := Params{fdate: fdate, tdate: tdate, ratio: 100, minDuration: 0, maxDuration: math.MaxInt32}
+	randomizeOpts := RandomizerOptions{Ratio: 100}
+	params := Params{fdate: fdate, tdate: tdate, minDuration: 0, maxDuration: math.MaxInt32, RandomizerOptions: randomizeOpts}
 	fsys := fstest.MapFS{
 		"should_be_selected.mp4": {
 			Data:    mocks.CreateData(120),
@@ -298,7 +302,8 @@ func TestCollectMediaContentSkipFilter(t *testing.T) {
 	modTime := time.Date(2020, 3, 26, 0, 0, 0, 0, time.UTC)
 	fdate := time.Date(2000, 3, 26, 0, 0, 0, 0, time.UTC)
 	tdate := time.Date(2030, 3, 26, 0, 0, 0, 0, time.UTC)
-	params := Params{fdate: fdate, tdate: tdate, ratio: 100, minDuration: 0, maxDuration: math.MaxInt32, skipF: []string{"bad_artist"}}
+	randomizeOpts := RandomizerOptions{Ratio: 100}
+	params := Params{fdate: fdate, tdate: tdate, RandomizerOptions: randomizeOpts, minDuration: 0, maxDuration: math.MaxInt32, skipF: []string{"bad_artist"}}
 	fsys := fstest.MapFS{
 		"good_artist/should_be_selected.mp4": {
 			Data:    mocks.CreateData(140),
@@ -326,7 +331,13 @@ func TestCollectMediaContentIncludeFilter(t *testing.T) {
 	modTime := time.Date(2020, 3, 26, 0, 0, 0, 0, time.UTC)
 	fdate := time.Date(2000, 3, 26, 0, 0, 0, 0, time.UTC)
 	tdate := time.Date(2030, 3, 26, 0, 0, 0, 0, time.UTC)
-	params := Params{fdate: fdate, tdate: tdate, ratio: 100, minDuration: 0, maxDuration: math.MaxInt32, includeF: []string{"good_artist"}}
+	randomizeOpts := RandomizerOptions{Ratio: 100}
+	params := Params{
+		fdate: fdate, tdate: tdate,
+		RandomizerOptions: randomizeOpts,
+		minDuration:       0, maxDuration: math.MaxInt32,
+		includeF: []string{"good_artist"},
+	}
 	fsys := fstest.MapFS{
 		"good_artist/should_be_selected.mp4": {
 			Data:    mocks.CreateData(140),
@@ -352,7 +363,14 @@ func TestCollectMediaContentIncludeFilter(t *testing.T) {
 func TestCollectMediaContentSelector(t *testing.T) {
 	fdate := time.Date(2000, 3, 26, 0, 0, 0, 0, time.UTC)
 	tdate := time.Date(2030, 3, 26, 0, 0, 0, 0, time.UTC)
-	params := Params{fdate: fdate, tdate: tdate, ratio: 0, minDuration: 0, maxDuration: math.MaxInt32}
+	randomOpts := RandomizerOptions{Ratio: 0}
+	params := Params{
+		fdate:             fdate,
+		tdate:             tdate,
+		RandomizerOptions: randomOpts,
+		minDuration:       0,
+		maxDuration:       math.MaxInt32,
+	}
 	fsys := fstest.MapFS{
 		"track_01.mp4": {
 			Data:    mocks.CreateData(100),
@@ -398,7 +416,7 @@ func _getIndices(items []MediaItem) (newIndices []int) {
 
 func TestRandomizePlaylistWithoutStabilizer(t *testing.T) {
 	mItems, indices := _createMediaItems(30)
-	randomizePlaylist(mItems, len(indices)+1)
+	randomizePlaylist(mItems, 1)
 
 	newIndices := _getIndices(mItems)
 	assert.NotEqualSlice(t, "Indices should be different", newIndices, indices)
@@ -414,7 +432,7 @@ func TestRandomizePlaylistWithStabilizer(t *testing.T) {
 
 func TestRandomizePlaylistStabilizerLessRandom(t *testing.T) {
 	nonStabilized, idxNonStabilized := _createMediaItems(100)
-	randomizePlaylist(nonStabilized, len(idxNonStabilized)+1)
+	randomizePlaylist(nonStabilized, 0)
 	newIndiecesNonStabilized := _getIndices(nonStabilized)
 
 	stabilized, idxStabilized := _createMediaItems(100)

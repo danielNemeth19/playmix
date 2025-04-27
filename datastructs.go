@@ -70,8 +70,9 @@ type PlayList struct {
 }
 
 type FileOptions struct {
-	Marquee     Marquee     `json:"marquee"`
-	PlayOptions PlayOptions `json:"play_options"`
+	Marquee           Marquee           `json:"marquee"`
+	PlayOptions       PlayOptions       `json:"play_options"`
+	RandomizerOptions RandomizerOptions `json:"randomizer_options"`
 }
 
 type Marquee struct {
@@ -81,9 +82,20 @@ type Marquee struct {
 	Position string `json:"position,omitempty"`
 }
 
-func (m Marquee) validateColor() bool {
+func (m Marquee) validateColor() error {
 	_, found := colorMap[m.Color]
-	return found
+	if !found && m.Color != "" {
+		return fmt.Errorf("%s color not found in color map\n", m.Color)
+	}
+	return nil
+}
+
+func (m Marquee) validatePosition() error {
+	_, found := textPositionMap[m.Position]
+	if !found && m.Position != "" {
+		return fmt.Errorf("%s position not found in position map\n", m.Position)
+	}
+	return nil
 }
 
 func (m Marquee) remapColor() color.RGBA {
@@ -92,11 +104,6 @@ func (m Marquee) remapColor() color.RGBA {
 		return colorMap["red"]
 	}
 	return color
-}
-
-func (m Marquee) validatePosition() bool {
-	_, found := textPositionMap[m.Position]
-	return found
 }
 
 func (m Marquee) remapPosition() vlc.Position {
@@ -113,7 +120,7 @@ type PlayOptions struct {
 	StopTime  uint16 `json:"stop_time,omitempty"`
 }
 
-func (p PlayOptions) ValidateTimes() error {
+func (p PlayOptions) validateTimes() error {
 	if p.StartTime != 0 && p.StopTime != 0 &&
 		(p.StartTime >= p.StopTime) {
 		return fmt.Errorf("Stop time (%d) should be greater than start time (%d)\n", p.StopTime, p.StartTime)
@@ -134,4 +141,23 @@ func (p PlayOptions) StringifyStartTime() string {
 
 func (p PlayOptions) StringifyStopTime() string {
 	return "stop-time=" + strconv.Itoa(int(p.StopTime))
+}
+
+type RandomizerOptions struct {
+	Ratio      uint8  `json:"ratio,omitempty"`
+	Stabilizer uint32 `json:"stabilizer,omitempty"`
+}
+
+func (r RandomizerOptions) validateRatio() error {
+	if r.Ratio < 0 || r.Ratio > 100 {
+		return fmt.Errorf("Ratio should be between 0 and 100, got %d\n", r.Ratio)
+	}
+	return nil
+}
+
+// TODO: think about this - defaulting is confusing
+func (r *RandomizerOptions) setDefaultRatio() {
+	if r.Ratio == 0 {
+		r.Ratio = 100
+	}
 }

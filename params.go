@@ -16,13 +16,6 @@ const (
 	playListExtension = ".xspf"
 )
 
-func validateRatio(ratio int) error {
-	if ratio < 0 || ratio > 100 {
-		return fmt.Errorf("Ratio should be between 0 and 100, got %d\n", ratio)
-	}
-	return nil
-}
-
 func parseParam(s string) []string {
 	if s == "" {
 		return []string{}
@@ -31,19 +24,19 @@ func parseParam(s string) []string {
 }
 
 type Params struct {
-	extFlag     bool
-	playFlag    bool
-	minDuration int
-	maxDuration int
-	stabilizer  int
-	ratio       int
-	fileName    string
-	includeF    []string
-	skipF       []string
-	fdate       time.Time
-	tdate       time.Time
-	optFile     string
-	fileOptions FileOptions
+	extFlag           bool
+	playFlag          bool
+	minDuration       int
+	maxDuration       int
+	fileName          string
+	includeF          []string
+	skipF             []string
+	fdate             time.Time
+	tdate             time.Time
+	optFile           string
+	MarqueeOptions    Marquee
+	PlayOptions       PlayOptions
+	RandomizerOptions RandomizerOptions
 }
 
 func (p *Params) setFileName(fn string) error {
@@ -85,6 +78,7 @@ func (p *Params) setFolderParams(includeF, skipF string) error {
 	return nil
 }
 
+// TODO: Think about refactoring option group validations out
 func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	data, err := readInOptFile(fsys, fn)
 	if err != nil {
@@ -95,19 +89,28 @@ func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	if err != nil {
 		return fmt.Errorf("Error unmarshalling options file: %s", err)
 	}
-	found := opt.Marquee.validateColor()
-	if !found {
-		return fmt.Errorf("Color %s is Unrecognized\n", opt.Marquee.Color)
-	}
-	found = opt.Marquee.validatePosition()
-	if !found {
-		return fmt.Errorf("Position %s is Unrecognized\n", opt.Marquee.Position)
-	}
-	err = opt.PlayOptions.ValidateTimes()
+	p.MarqueeOptions = opt.Marquee
+	p.PlayOptions = opt.PlayOptions
+	p.RandomizerOptions = opt.RandomizerOptions
+
+	err = p.MarqueeOptions.validateColor()
 	if err != nil {
 		return err
 	}
-	p.fileOptions = opt
+	err = p.MarqueeOptions.validatePosition()
+	if err != nil {
+		return err
+	}
+
+	err = p.PlayOptions.validateTimes()
+	if err != nil {
+		return err
+	}
+	err = p.RandomizerOptions.validateRatio()
+	if err != nil {
+		return err
+	}
+	p.RandomizerOptions.setDefaultRatio()
 	return nil
 }
 
@@ -117,8 +120,6 @@ func getParams() (*Params, error) {
 	flag.BoolVar(&p.playFlag, "play", false, "If specified, playlist will be played")
 	flag.IntVar(&p.minDuration, "mindur", 0, "Minimum duration of media files to collect (in seconds)")
 	flag.IntVar(&p.maxDuration, "maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
-	flag.IntVar(&p.stabilizer, "stabilizer", math.MaxInt32, "Specifies the interval at which elements are fixed in place during shuffling (they still could be swapped)")
-	flag.IntVar(&p.ratio, "ratio", 100, "Specifies the ratio of files to be included in the playlist (e.g. 80 means roughly 80%)")
 	fileName := flag.String("fn", "", "Specifies the file name of the playlist")
 	fdate := flag.String("fdate", "20000101", "Files created after fdate will be considered")
 	tdate := flag.String("tdate", "20300101", "Files created before tdate will be considered")
@@ -126,11 +127,7 @@ func getParams() (*Params, error) {
 	skipF := flag.String("skip", "", "Folders to skip")
 	optFile := flag.String("opt_file", "", "File to set options")
 	flag.Parse()
-	err := validateRatio(p.ratio)
-	if err != nil {
-		return nil, err
-	}
-	err = p.setFileName(*fileName)
+	err := p.setFileName(*fileName)
 	if err != nil {
 		return nil, err
 	}

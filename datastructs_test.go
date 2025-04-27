@@ -6,6 +6,30 @@ import (
 	"testing"
 )
 
+func TestValidateColor(t *testing.T) {
+	m := Marquee{Color: "red"}
+	err := m.validateColor()
+	assert.ErrorRaised(t, "Error should not be raised for valid color", err, false)
+}
+
+func TestValidateColorError(t *testing.T) {
+	m := Marquee{Color: "invalid"}
+	err := m.validateColor()
+	assert.ErrorRaised(t, "Error should be raised for invalid color", err, true)
+}
+
+func TestValidatePosition(t *testing.T) {
+	m := Marquee{Position: "center"}
+	err := m.validatePosition()
+	assert.ErrorRaised(t, "Error should not be raised for valid position", err, false)
+}
+
+func TestValidatePositionError(t *testing.T) {
+	m := Marquee{Position: "invalid"}
+	err := m.validatePosition()
+	assert.ErrorRaised(t, "Error should be raised for invalid position", err, true)
+}
+
 func TestRemapColor(t *testing.T) {
 	for color, colorRGBA := range colorMap {
 		m := Marquee{
@@ -58,18 +82,18 @@ func TestRemapPositionDefault(t *testing.T) {
 func TestValidateTimes(t *testing.T) {
 	opts := PlayOptions{
 		StartTime: 100,
-		StopTime: 50,
+		StopTime:  50,
 	}
-	err := opts.ValidateTimes()
+	err := opts.validateTimes()
 	assert.ErrorRaised(t, "Start time should not be smaller than stop time", err, true)
 }
 
 func TestValidateTimesNotProvided(t *testing.T) {
 	opts := PlayOptions{
 		StartTime: 0,
-		StopTime: 0,
+		StopTime:  0,
 	}
-	err := opts.ValidateTimes()
+	err := opts.validateTimes()
 	assert.ErrorRaised(t, "Should not raise error", err, false)
 }
 
@@ -89,7 +113,6 @@ func TestStringifyNoAudio(t *testing.T) {
 	assert.Equal(t, "Should be emtpy string", xmlValue, "no-audio")
 }
 
-
 func TestStringifyStartTime(t *testing.T) {
 	opts := PlayOptions{
 		StartTime: 100,
@@ -106,3 +129,16 @@ func TestStringifyStopTime(t *testing.T) {
 	assert.Equal(t, "StopTime should be stop-time=200 in xml", xmlValue, "stop-time=200")
 }
 
+func TestParamsValidateRatio(t *testing.T) {
+	opts := RandomizerOptions{
+		Ratio: 100,
+	}
+	err := opts.validateRatio()
+	assert.Equal(t, "Validate return nil", nil, err)
+
+	opts = RandomizerOptions{
+		Ratio: 150,
+	}
+	err = opts.validateRatio()
+	assert.ErrorRaised(t, "Validate ratio should return error", err, true)
+}

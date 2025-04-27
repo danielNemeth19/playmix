@@ -8,17 +8,6 @@ import (
 	"time"
 )
 
-func TestParamsValidateRatio(t *testing.T) {
-	err := validateRatio(100)
-	assert.Equal(t, "Validate return nil", nil, err)
-
-	err = validateRatio(-50)
-	assert.ErrorRaised(t, "Validate ratio should return error", err, true)
-
-	err = validateRatio(150)
-	assert.ErrorRaised(t, "Validate ratio should return error", err, true)
-}
-
 func TestParamsParseNil(t *testing.T) {
 	input := ""
 	expected := []string{}
@@ -113,7 +102,7 @@ func TestParseOptFile(t *testing.T) {
 		Opacity:  50,
 		Position: "center",
 	}
-	assert.Equal(t, "Marquee should be set", p.fileOptions.Marquee, expectedMarquee)
+	assert.Equal(t, "Marquee should be set", p.MarqueeOptions, expectedMarquee)
 }
 
 func TestParseOptFileOpenError(t *testing.T) {
@@ -178,4 +167,34 @@ func TestParseOptFileInvalidColor(t *testing.T) {
 	}
 	err := p.parseOptFile(f, fn)
 	assert.ErrorRaised(t, "Should raise unrecognized color error", err, true)
+}
+
+func TestParseOptFileInvalidTimes(t *testing.T) {
+	p := Params{}
+	data := []byte(`{"play_options": {"start_time": 100, "stop_time": 10}}`)
+	fn := "options.json"
+	f := fstest.MapFS{
+		fn: {
+			Data:    data,
+			Mode:    0755,
+			ModTime: time.Now(),
+		},
+	}
+	err := p.parseOptFile(f, fn)
+	assert.ErrorRaised(t, "Should raise invalid time error", err, true)
+}
+
+func TestParseOptFileInvalidRatio(t *testing.T) {
+	p := Params{}
+	data := []byte(`{"randomizer_options": {"ratio": 110 }}`)
+	fn := "options.json"
+	f := fstest.MapFS{
+		fn: {
+			Data:    data,
+			Mode:    0755,
+			ModTime: time.Now(),
+		},
+	}
+	err := p.parseOptFile(f, fn)
+	assert.ErrorRaised(t, "Should raise invalid time error", err, true)
 }

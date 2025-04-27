@@ -36,7 +36,7 @@ func (m *MediaItem) getRelativeDir(rootParts []string) {
 
 type Summarizer struct {
 	dBucket       DurationBucket
-	ratio         int
+	ratio         uint8
 	totalDuration float64
 	totalScanned  int
 	totalSelected int
@@ -138,7 +138,7 @@ func collectMediaContent(p string, fsys fs.FS, params Params) ([]MediaItem, Summ
 	var items []MediaItem
 	rootParts := getPathParts(p)
 	summary := Summarizer{ // TODO: factors this out to be a parameter
-		ratio:         params.ratio,
+		ratio:         params.RandomizerOptions.Ratio,
 		totalScanned:  0,
 		totalSelected: 0,
 		totalDuration: 0,
@@ -154,7 +154,7 @@ func collectMediaContent(p string, fsys fs.FS, params Params) ([]MediaItem, Summ
 		}
 		absPath := filepath.Join(p, path)
 		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(rootParts, absPath, params.includeF) && dateFilter(d, params) {
-			if selector(params.ratio) {
+			if selector(int(params.RandomizerOptions.Ratio)) {
 				duration, err := getDuration(fsys, path)
 				if err != nil {
 					return err
@@ -222,7 +222,7 @@ func getDuration(fsys fs.FS, p string) (duration float64, err error) {
 }
 
 func randomizePlaylist(playlist []MediaItem, stabilizer int) {
-	if stabilizer > len(playlist) {
+	if stabilizer < 2 {
 		rand.Shuffle(len(playlist), func(i, j int) {
 			playlist[i], playlist[j] = playlist[j], playlist[i]
 		})

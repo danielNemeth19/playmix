@@ -34,6 +34,7 @@ type Params struct {
 	fdate             time.Time
 	tdate             time.Time
 	optFile           string
+	MediaPath         string
 	MarqueeOptions    Marquee
 	PlayOptions       PlayOptions
 	RandomizerOptions RandomizerOptions
@@ -89,9 +90,15 @@ func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	if err != nil {
 		return fmt.Errorf("Error unmarshalling options file: %s", err)
 	}
+	p.MediaPath = opt.MediaPath
 	p.MarqueeOptions = opt.Marquee
 	p.PlayOptions = opt.PlayOptions
 	p.RandomizerOptions = opt.RandomizerOptions
+
+	err = opt.validatePath()
+	if err != nil {
+		return err
+	}
 
 	err = p.MarqueeOptions.validateColor()
 	if err != nil {

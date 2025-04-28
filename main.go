@@ -13,13 +13,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Param validation error: %s\n", err)
 	}
-	root, err := getPath()
-	if err != nil {
-		log.Fatalf("Error raised: %s\n", err)
-	}
-	log.Printf("Path to be used: %s\n", root)
+	
+	log.Printf("Path to be used: %s\n", params.MediaPath)
 
-	fsys := os.DirFS(root)
+	fsys := os.DirFS(params.MediaPath)
 	if params.extFlag {
 		extensions, err := collectExtensions(fsys)
 		if err != nil {
@@ -27,7 +24,7 @@ func main() {
 		}
 		fmt.Printf("Extensions: %v\n", extensions)
 	}
-	content, summary, err := collectMediaContent(root, fsys, *params)
+	content, summary, err := collectMediaContent(params.MediaPath, fsys, *params)
 	if err != nil {
 		log.Fatalf("Error during getting files: %s\n", err)
 	}

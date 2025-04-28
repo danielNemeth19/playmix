@@ -3,8 +3,11 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 	"image/color"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	vlc "github.com/adrg/libvlc-go/v3"
 )
@@ -70,9 +73,21 @@ type PlayList struct {
 }
 
 type FileOptions struct {
+	MediaPath         string            `json:"media_path"`
 	Marquee           Marquee           `json:"marquee"`
 	PlayOptions       PlayOptions       `json:"play_options"`
 	RandomizerOptions RandomizerOptions `json:"randomizer_options"`
+}
+
+func (f *FileOptions) validatePath() error {
+	if f.MediaPath == "" {
+		return fmt.Errorf("media_path needs to be set in options file")
+	}
+	if !strings.HasSuffix(f.MediaPath, string(filepath.Separator)) {
+		f.MediaPath += string(filepath.Separator)
+		log.Printf("Root path got normalized by adding path separator (%s)\n", string(filepath.Separator))
+	}
+	return nil
 }
 
 type Marquee struct {

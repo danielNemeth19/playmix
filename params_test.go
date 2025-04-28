@@ -85,7 +85,7 @@ func TestParamsSetFolderParamsError(t *testing.T) {
 
 func TestParseOptFile(t *testing.T) {
 	p := Params{}
-	data := []byte(`{"marquee": {"text": "test", "color":"black", "opacity":50, "position":"center"}}`)
+	data := []byte(`{ "media_path": "path/to/media/", "marquee": {"text": "test", "color":"black", "opacity":50, "position":"center"}}`)
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {
@@ -139,9 +139,24 @@ func TestParseOptUnMarshallError(t *testing.T) {
 	assert.ErrorRaised(t, "Should raise unmarshall error", err, true)
 }
 
+func TestParseOptFileInvalidPath(t *testing.T) {
+	p := Params{}
+	data := []byte(`{"media_path":""}`)
+	fn := "options.json"
+	f := fstest.MapFS{
+		fn: {
+			Data: data,
+			Mode: 0755,
+			ModTime: time.Now(),
+		},
+	}
+	err := p.parseOptFile(f, fn)
+	assert.ErrorRaised(t, "Should raise media_path needs to be set error", err, true)
+}
+
 func TestParseOptFileInvalidPosition(t *testing.T) {
 	p := Params{}
-	data := []byte(`{"marquee": {"text": "test", "color": "blue", "opacity":100, "position":"invalid"}}`)
+	data := []byte(`{"media_path":"/media/", "marquee": {"text": "test", "color": "blue", "opacity":100, "position":"invalid"}}`)
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {
@@ -156,7 +171,7 @@ func TestParseOptFileInvalidPosition(t *testing.T) {
 
 func TestParseOptFileInvalidColor(t *testing.T) {
 	p := Params{}
-	data := []byte(`{"marquee": {"text": "test", "color": "invalid", "opacity":100, "position":"center"}}`)
+	data := []byte(`{"media_path":"/media/", "marquee": {"text": "test", "color": "invalid", "opacity":100, "position":"center"}}`)
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {
@@ -171,7 +186,7 @@ func TestParseOptFileInvalidColor(t *testing.T) {
 
 func TestParseOptFileInvalidTimes(t *testing.T) {
 	p := Params{}
-	data := []byte(`{"play_options": {"start_time": 100, "stop_time": 10}}`)
+	data := []byte(`{"media_path":"/media/", "play_options": {"start_time": 100, "stop_time": 10}}`)
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {
@@ -186,7 +201,7 @@ func TestParseOptFileInvalidTimes(t *testing.T) {
 
 func TestParseOptFileInvalidRatio(t *testing.T) {
 	p := Params{}
-	data := []byte(`{"randomizer_options": {"ratio": 110 }}`)
+	data := []byte(`{"media_path":"/media/", "randomizer_options": {"ratio": 110 }}`)
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {

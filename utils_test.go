@@ -8,28 +8,6 @@ import (
 	"time"
 )
 
-func TestGetPath(t *testing.T) {
-	t.Setenv("MEDIA_SOURCE", "/home/user/Music/")
-	got, err := getPath()
-	expected := "/home/user/Music/"
-	assert.Equal(t, "Should parse root path", got, expected)
-	assert.ErrorRaised(t, "No error", err, false)
-}
-
-func TestGetPathNormalized(t *testing.T) {
-	t.Setenv("MEDIA_SOURCE", "/home/user/Music")
-	got, err := getPath()
-	expected := "/home/user/Music/"
-	assert.Equal(t, "Should parse root path normalized", got, expected)
-	assert.ErrorRaised(t, "No error", err, false)
-}
-
-func TestGetPathRaisesError(t *testing.T) {
-	t.Setenv("MEDIA_SOURCE", "")
-	_, err := getPath()
-	assert.ErrorRaised(t, "Should raise error", err, true)
-}
-
 func TestGetPathPartsWithFile(t *testing.T) {
 	p := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
 	expected := []string{"home", "user", "Music", "Genre", "Artist", "Album"}

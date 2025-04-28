@@ -6,6 +6,28 @@ import (
 	"testing"
 )
 
+func TestValidatePath(t *testing.T) {
+	fOpts := FileOptions{MediaPath:  "/home/user/Music/"}
+	err := fOpts.validatePath()
+	expected := "/home/user/Music/"
+	assert.Equal(t, "Should parse root path", fOpts.MediaPath, expected)
+	assert.ErrorRaised(t, "No error", err, false)
+}
+
+func TestValidatePathNormalized(t *testing.T) {
+	fOpts := FileOptions{MediaPath:  "/home/user/Music"}
+	err := fOpts.validatePath()
+	expected := "/home/user/Music/"
+	assert.Equal(t, "Should parse root path normalized", fOpts.MediaPath, expected)
+	assert.ErrorRaised(t, "No error", err, false)
+}
+
+func TestValidatePathRaisesError(t *testing.T) {
+	fOpts := FileOptions{MediaPath:  ""}
+	err := fOpts.validatePath()
+	assert.ErrorRaised(t, "Should raise error", err, true)
+}
+
 func TestValidateColor(t *testing.T) {
 	m := Marquee{Color: "red"}
 	err := m.validateColor()

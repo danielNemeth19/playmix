@@ -26,19 +26,6 @@ func readInOptFile(fsys fs.FS, fn string) ([]byte, error) {
 	}
 	return data, nil
 }
-
-func getPath() (string, error) {
-	rootPath := os.Getenv("MEDIA_SOURCE")
-	if rootPath == "" {
-		return "", fmt.Errorf("MEDIA_SOURCE environment variable not set")
-	}
-	if !strings.HasSuffix(rootPath, string(filepath.Separator)) {
-		rootPath += string(filepath.Separator)
-		log.Printf("Root path got normalized by adding path separator (%s)\n", string(filepath.Separator))
-	}
-	return rootPath, nil
-}
-
 func getPathParts(p string) []string {
 	dir := filepath.Dir(p)
 	trimmedDir := strings.TrimPrefix(dir, string(filepath.Separator))

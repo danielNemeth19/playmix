@@ -32,13 +32,13 @@ func TestParamsParse(t *testing.T) {
 func TestParamsSetFileName(t *testing.T) {
 	p := Params{}
 	p.setFileName("myplaylist")
-	assert.Equal(t, "Should set file name correctly", p.fileName, "myplaylist.xspf")
+	assert.Equal(t, "Should set file name correctly", p.FileName, "myplaylist.xspf")
 }
 
 func TestParamsSetFileNameIfNotProvided(t *testing.T) {
 	p := Params{}
 	p.setFileName("")
-	assert.Equal(t, "Should set file name correctly", p.fileName, "pl-test.xspf")
+	assert.Equal(t, "Should set file name correctly", p.FileName, "pl-test.xspf")
 }
 
 func TestParamsSetFileNameError(t *testing.T) {

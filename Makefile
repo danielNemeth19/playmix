@@ -5,7 +5,6 @@ test:
 .PHONY: coverage
 coverage:
 	go test -cover 
-	
 
 .PHONY: covhtml 
 covhtml:

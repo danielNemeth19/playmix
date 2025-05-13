@@ -31,7 +31,7 @@ func main() {
 	randomizePlaylist(content, int(params.RandomizerOptions.Stabilizer))
 	playList := buildPlayList(content, params.PlayOptions)
 
-	outfile, err := createFile(params.fileName)
+	outfile, err := createFile(params.FileName)
 	if err != nil {
 		log.Fatalf("Error during creating file: %s\n", err)
 	}
@@ -44,6 +44,6 @@ func main() {
 	// TODO: maybe make duration bucket summary optional too
 	summary.getData(os.Stdout)
 	if params.playFlag {
-		playMixList(params.fileName, params.MarqueeOptions)
+		playMixList(params.FileName, params.MarqueeOptions)
 	}
 }

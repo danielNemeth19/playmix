@@ -28,13 +28,13 @@ type Params struct {
 	playFlag          bool
 	minDuration       int
 	maxDuration       int
-	fileName          string
 	includeF          []string
 	skipF             []string
 	fdate             time.Time
 	tdate             time.Time
 	optFile           string
 	MediaPath         string
+	FileName          string
 	MarqueeOptions    Marquee
 	PlayOptions       PlayOptions
 	RandomizerOptions RandomizerOptions
@@ -42,13 +42,13 @@ type Params struct {
 
 func (p *Params) setFileName(fn string) error {
 	if fn == "" {
-		p.fileName = "pl-test" + playListExtension
+		p.FileName = "pl-test" + playListExtension
 	} else {
 		ext := filepath.Ext(fn)
 		if ext != "" {
 			return fmt.Errorf("File name should not have extension defined")
 		}
-		p.fileName = fn + playListExtension
+		p.FileName = fn + playListExtension
 	}
 	return nil
 }
@@ -100,6 +100,11 @@ func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 		return err
 	}
 
+	err = p.setFileName(opt.FileName)
+	if err != nil {
+		return err
+	}
+
 	err = p.MarqueeOptions.validateColor()
 	if err != nil {
 		return err
@@ -127,18 +132,13 @@ func getParams() (*Params, error) {
 	flag.BoolVar(&p.playFlag, "play", false, "If specified, playlist will be played")
 	flag.IntVar(&p.minDuration, "mindur", 0, "Minimum duration of media files to collect (in seconds)")
 	flag.IntVar(&p.maxDuration, "maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
-	fileName := flag.String("fn", "", "Specifies the file name of the playlist")
 	fdate := flag.String("fdate", "20000101", "Files created after fdate will be considered")
 	tdate := flag.String("tdate", "20300101", "Files created before tdate will be considered")
 	includeF := flag.String("include", "", "Folders to consider")
 	skipF := flag.String("skip", "", "Folders to skip")
 	optFile := flag.String("opt_file", "", "File to set options")
 	flag.Parse()
-	err := p.setFileName(*fileName)
-	if err != nil {
-		return nil, err
-	}
-	err = p.setDateParams(*fdate, *tdate)
+	err := p.setDateParams(*fdate, *tdate)
 	if err != nil {
 		return nil, err
 	}

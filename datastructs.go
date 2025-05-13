@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
-	"log"
 	"image/color"
+	"log"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -74,6 +74,7 @@ type PlayList struct {
 
 type FileOptions struct {
 	MediaPath         string            `json:"media_path"`
+	FileName          string            `json:"file_name"`
 	Marquee           Marquee           `json:"marquee"`
 	PlayOptions       PlayOptions       `json:"play_options"`
 	RandomizerOptions RandomizerOptions `json:"randomizer_options"`

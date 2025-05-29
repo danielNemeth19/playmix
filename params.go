@@ -8,7 +8,6 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -16,20 +15,11 @@ const (
 	playListExtension = ".xspf"
 )
 
-func parseParam(s string) []string {
-	if s == "" {
-		return []string{}
-	}
-	return strings.Split(s, ",")
-}
-
 type Params struct {
 	extFlag           bool
 	playFlag          bool
 	minDuration       int
 	maxDuration       int
-	includeF          []string
-	skipF             []string
 	fdate             time.Time
 	tdate             time.Time
 	optFile           string
@@ -38,6 +28,7 @@ type Params struct {
 	MarqueeOptions    Marquee
 	PlayOptions       PlayOptions
 	RandomizerOptions RandomizerOptions
+	FilterOptions     FilterOptions
 }
 
 func (p *Params) setFileName(fn string) error {
@@ -70,14 +61,14 @@ func (p *Params) setDateParams(fdate, tdate string) error {
 	return nil
 }
 
-func (p *Params) setFolderParams(includeF, skipF string) error {
-	if includeF != "" && skipF != "" {
-		return fmt.Errorf("Include and skip folders are mutually exclusive")
-	}
-	p.includeF = parseParam(includeF)
-	p.skipF = parseParam(skipF)
-	return nil
-}
+// func (p *Params) setFolderParams(includeF, skipF string) error {
+	// if includeF != "" && skipF != "" {
+		// return fmt.Errorf("Include and skip folders are mutually exclusive")
+	// }
+	// p.includeF = parseParam(includeF)
+	// p.skipF = parseParam(skipF)
+	// return nil
+// }
 
 // TODO: Think about refactoring option group validations out
 func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
@@ -94,6 +85,7 @@ func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	p.MarqueeOptions = opt.Marquee
 	p.PlayOptions = opt.PlayOptions
 	p.RandomizerOptions = opt.RandomizerOptions
+	p.FilterOptions = opt.FilterOptions
 
 	err = opt.validatePath()
 	if err != nil {
@@ -101,6 +93,11 @@ func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	}
 
 	err = p.setFileName(opt.FileName)
+	if err != nil {
+		return err
+	}
+	
+	err = p.FilterOptions.validateFilterOptions()
 	if err != nil {
 		return err
 	}
@@ -134,18 +131,18 @@ func getParams() (*Params, error) {
 	flag.IntVar(&p.maxDuration, "maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
 	fdate := flag.String("fdate", "20000101", "Files created after fdate will be considered")
 	tdate := flag.String("tdate", "20300101", "Files created before tdate will be considered")
-	includeF := flag.String("include", "", "Folders to consider")
-	skipF := flag.String("skip", "", "Folders to skip")
+	// includeF := flag.String("include", "", "Folders to consider")
+	// skipF := flag.String("skip", "", "Folders to skip")
 	optFile := flag.String("opt_file", "", "File to set options")
 	flag.Parse()
 	err := p.setDateParams(*fdate, *tdate)
 	if err != nil {
 		return nil, err
 	}
-	err = p.setFolderParams(*includeF, *skipF)
-	if err != nil {
-		return nil, err
-	}
+	// err = p.setFolderParams(*includeF, *skipF)
+	// if err != nil {
+		// return nil, err
+	// }
 	fsys := os.DirFS(".")
 	if *optFile != "" {
 		err = p.parseOptFile(fsys, *optFile)

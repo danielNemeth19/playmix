@@ -149,11 +149,11 @@ func collectMediaContent(p string, fsys fs.FS, params Params) ([]MediaItem, Summ
 		if err != nil {
 			return err
 		}
-		if d.IsDir() && toSkip(d.Name(), params.skipF) {
+		if d.IsDir() && toSkip(d.Name(), params.FilterOptions.Skipf) {
 			return filepath.SkipDir
 		}
 		absPath := filepath.Join(p, path)
-		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(rootParts, absPath, params.includeF) && dateFilter(d, params) {
+		if !d.IsDir() && isMediaFile(filepath.Ext(d.Name())) && isIncluded(rootParts, absPath, params.FilterOptions.IncludeF) && dateFilter(d, params) {
 			if selector(int(params.RandomizerOptions.Ratio)) {
 				duration, err := getDuration(fsys, path)
 				if err != nil {

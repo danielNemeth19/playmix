@@ -78,6 +78,7 @@ type FileOptions struct {
 	Marquee           Marquee           `json:"marquee"`
 	PlayOptions       PlayOptions       `json:"play_options"`
 	RandomizerOptions RandomizerOptions `json:"randomizer_options"`
+	FilterOptions     FilterOptions     `json:"filter_options"`
 }
 
 func (f *FileOptions) validatePath() error {
@@ -176,4 +177,16 @@ func (r *RandomizerOptions) setDefaultRatio() {
 	if r.Ratio == 0 {
 		r.Ratio = 100
 	}
+}
+
+type FilterOptions struct {
+	IncludeF []string `json:"include_folder"`
+	Skipf    []string `json:"skip_folder"`
+}
+
+func (f *FilterOptions) validateFilterOptions() error {
+	if len(f.IncludeF) != 0 && len(f.Skipf) != 0 {
+		return fmt.Errorf("Include and skip folders are mutually exclusive")
+	}
+	return nil
 }

@@ -303,7 +303,15 @@ func TestCollectMediaContentSkipFilter(t *testing.T) {
 	fdate := time.Date(2000, 3, 26, 0, 0, 0, 0, time.UTC)
 	tdate := time.Date(2030, 3, 26, 0, 0, 0, 0, time.UTC)
 	randomizeOpts := RandomizerOptions{Ratio: 100}
-	params := Params{fdate: fdate, tdate: tdate, RandomizerOptions: randomizeOpts, minDuration: 0, maxDuration: math.MaxInt32, skipF: []string{"bad_artist"}}
+	filterOpts := FilterOptions{Skipf: []string{"bad_artist"}}
+	params := Params{
+		fdate: fdate,
+		tdate: tdate,
+		RandomizerOptions: randomizeOpts,
+		minDuration: 0,
+		maxDuration: math.MaxInt32,
+		FilterOptions: filterOpts,
+	}
 	fsys := fstest.MapFS{
 		"good_artist/should_be_selected.mp4": {
 			Data:    mocks.CreateData(140),
@@ -332,11 +340,12 @@ func TestCollectMediaContentIncludeFilter(t *testing.T) {
 	fdate := time.Date(2000, 3, 26, 0, 0, 0, 0, time.UTC)
 	tdate := time.Date(2030, 3, 26, 0, 0, 0, 0, time.UTC)
 	randomizeOpts := RandomizerOptions{Ratio: 100}
+	filterOpts := FilterOptions{IncludeF: []string{"good_artist"}}
 	params := Params{
 		fdate: fdate, tdate: tdate,
 		RandomizerOptions: randomizeOpts,
 		minDuration:       0, maxDuration: math.MaxInt32,
-		includeF: []string{"good_artist"},
+		FilterOptions: filterOpts,
 	}
 	fsys := fstest.MapFS{
 		"good_artist/should_be_selected.mp4": {

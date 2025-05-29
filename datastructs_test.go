@@ -7,7 +7,7 @@ import (
 )
 
 func TestValidatePath(t *testing.T) {
-	fOpts := FileOptions{MediaPath:  "/home/user/Music/"}
+	fOpts := FileOptions{MediaPath: "/home/user/Music/"}
 	err := fOpts.validatePath()
 	expected := "/home/user/Music/"
 	assert.Equal(t, "Should parse root path", fOpts.MediaPath, expected)
@@ -15,7 +15,7 @@ func TestValidatePath(t *testing.T) {
 }
 
 func TestValidatePathNormalized(t *testing.T) {
-	fOpts := FileOptions{MediaPath:  "/home/user/Music"}
+	fOpts := FileOptions{MediaPath: "/home/user/Music"}
 	err := fOpts.validatePath()
 	expected := "/home/user/Music/"
 	assert.Equal(t, "Should parse root path normalized", fOpts.MediaPath, expected)
@@ -23,7 +23,7 @@ func TestValidatePathNormalized(t *testing.T) {
 }
 
 func TestValidatePathRaisesError(t *testing.T) {
-	fOpts := FileOptions{MediaPath:  ""}
+	fOpts := FileOptions{MediaPath: ""}
 	err := fOpts.validatePath()
 	assert.ErrorRaised(t, "Should raise error", err, true)
 }
@@ -163,4 +163,34 @@ func TestParamsValidateRatio(t *testing.T) {
 	}
 	err = opts.validateRatio()
 	assert.ErrorRaised(t, "Validate ratio should return error", err, true)
+}
+
+func TestValidateFilterOptions(t *testing.T) {
+	opts := FilterOptions{
+		IncludeF: []string{},
+		Skipf:    []string{},
+	}
+	err := opts.validateFilterOptions()
+	assert.Equal(t, "Validate return nil", nil, err)
+	
+	opts = FilterOptions{
+		IncludeF: []string{"folderA"},
+		Skipf:    []string{},
+	}
+	err = opts.validateFilterOptions()
+	assert.Equal(t, "Validate return nil", nil, err)
+	
+	opts = FilterOptions{
+		IncludeF: []string{},
+		Skipf:    []string{"folderB"},
+	}
+	err = opts.validateFilterOptions()
+	assert.Equal(t, "Validate return nil", nil, err)
+
+	opts = FilterOptions{
+		IncludeF: []string{"folderA"},
+		Skipf:    []string{"folderB"},
+	}
+	err = opts.validateFilterOptions()
+	assert.ErrorRaised(t, "Validate should return error", err, true)
 }

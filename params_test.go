@@ -8,27 +8,6 @@ import (
 	"time"
 )
 
-func TestParamsParseNil(t *testing.T) {
-	input := ""
-	expected := []string{}
-	parsed := parseParam(input)
-	assert.EqualSlice(t, "Should return empty slice", parsed, expected)
-}
-
-func TestParamsParseOneItem(t *testing.T) {
-	input := "abc"
-	expected := []string{"abc"}
-	parsed := parseParam(input)
-	assert.EqualSlice(t, "Should return slice", parsed, expected)
-}
-
-func TestParamsParse(t *testing.T) {
-	input := "a,b,c"
-	expected := []string{"a", "b", "c"}
-	parsed := parseParam(input)
-	assert.EqualSlice(t, "Should return multiple folders in slice", parsed, expected)
-}
-
 func TestParamsSetFileName(t *testing.T) {
 	p := Params{}
 	p.setFileName("myplaylist")
@@ -65,22 +44,6 @@ func TestParamsSetDateParamsError(t *testing.T) {
 	assert.ErrorRaised(t, "Setting date params should return error", err, true)
 	err = p.setDateParams("20241212", "20231212")
 	assert.ErrorRaised(t, "Setting date params should return error", err, true)
-}
-
-func TestParamsSetFolderParams(t *testing.T) {
-	p := Params{}
-	p.setFolderParams("folderA,folderB", "")
-
-	expectedIncludeF := []string{"folderA", "folderB"}
-	expectedSkipF := []string{}
-	assert.EqualSlice(t, "Should parse include folder param to slice", p.includeF, expectedIncludeF)
-	assert.EqualSlice(t, "Should parse skip folder param to slice", p.skipF, expectedSkipF)
-}
-
-func TestParamsSetFolderParamsError(t *testing.T) {
-	p := Params{}
-	err := p.setFolderParams("folderA,folderB", "folderC,folderD")
-	assert.ErrorRaised(t, "Folder params are mutually exclusive", err, true)
 }
 
 func TestParseOptFile(t *testing.T) {
@@ -202,6 +165,21 @@ func TestParseOptFileInvalidTimes(t *testing.T) {
 func TestParseOptFileInvalidRatio(t *testing.T) {
 	p := Params{}
 	data := []byte(`{"media_path":"/media/", "randomizer_options": {"ratio": 110 }}`)
+	fn := "options.json"
+	f := fstest.MapFS{
+		fn: {
+			Data:    data,
+			Mode:    0755,
+			ModTime: time.Now(),
+		},
+	}
+	err := p.parseOptFile(f, fn)
+	assert.ErrorRaised(t, "Should raise invalid time error", err, true)
+}
+
+func TestParseOptInvalidFilterOptions(t *testing.T) {
+	p := Params{}
+	data := []byte(`{"media_path":"/media/", "filter_options: { "include_folder": ["folderA"], "skip_folder": ["folderB"]}}`)
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {

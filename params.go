@@ -61,15 +61,6 @@ func (p *Params) setDateParams(fdate, tdate string) error {
 	return nil
 }
 
-// func (p *Params) setFolderParams(includeF, skipF string) error {
-	// if includeF != "" && skipF != "" {
-		// return fmt.Errorf("Include and skip folders are mutually exclusive")
-	// }
-	// p.includeF = parseParam(includeF)
-	// p.skipF = parseParam(skipF)
-	// return nil
-// }
-
 // TODO: Think about refactoring option group validations out
 func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	data, err := readInOptFile(fsys, fn)
@@ -96,7 +87,7 @@ func (p *Params) parseOptFile(fsys fs.FS, fn string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	err = p.FilterOptions.validateFilterOptions()
 	if err != nil {
 		return err
@@ -131,18 +122,12 @@ func getParams() (*Params, error) {
 	flag.IntVar(&p.maxDuration, "maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
 	fdate := flag.String("fdate", "20000101", "Files created after fdate will be considered")
 	tdate := flag.String("tdate", "20300101", "Files created before tdate will be considered")
-	// includeF := flag.String("include", "", "Folders to consider")
-	// skipF := flag.String("skip", "", "Folders to skip")
 	optFile := flag.String("opt_file", "", "File to set options")
 	flag.Parse()
 	err := p.setDateParams(*fdate, *tdate)
 	if err != nil {
 		return nil, err
 	}
-	// err = p.setFolderParams(*includeF, *skipF)
-	// if err != nil {
-		// return nil, err
-	// }
 	fsys := os.DirFS(".")
 	if *optFile != "" {
 		err = p.parseOptFile(fsys, *optFile)

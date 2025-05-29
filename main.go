@@ -13,7 +13,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Param validation error: %s\n", err)
 	}
-	
+
 	log.Printf("Path to be used: %s\n", params.MediaPath)
 
 	fsys := os.DirFS(params.MediaPath)

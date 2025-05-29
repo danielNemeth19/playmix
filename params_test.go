@@ -108,8 +108,8 @@ func TestParseOptFileInvalidPath(t *testing.T) {
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {
-			Data: data,
-			Mode: 0755,
+			Data:    data,
+			Mode:    0755,
 			ModTime: time.Now(),
 		},
 	}
@@ -179,7 +179,7 @@ func TestParseOptFileInvalidRatio(t *testing.T) {
 
 func TestParseOptInvalidFilterOptions(t *testing.T) {
 	p := Params{}
-	data := []byte(`{"media_path":"/media/", "filter_options: { "include_folder": ["folderA"], "skip_folder": ["folderB"]}}`)
+	data := []byte(`{"media_path":"/media/", "filter_options": {"include_folder": ["folderA"], "skip_folder": ["folderB"]}}`)
 	fn := "options.json"
 	f := fstest.MapFS{
 		fn: {
@@ -189,5 +189,5 @@ func TestParseOptInvalidFilterOptions(t *testing.T) {
 		},
 	}
 	err := p.parseOptFile(f, fn)
-	assert.ErrorRaised(t, "Should raise invalid time error", err, true)
+	assert.ErrorRaised(t, "Should raise invalid filter options error", err, true)
 }

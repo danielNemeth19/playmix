@@ -305,12 +305,12 @@ func TestCollectMediaContentSkipFilter(t *testing.T) {
 	randomizeOpts := RandomizerOptions{Ratio: 100}
 	filterOpts := FilterOptions{Skipf: []string{"bad_artist"}}
 	params := Params{
-		fdate: fdate,
-		tdate: tdate,
+		fdate:             fdate,
+		tdate:             tdate,
 		RandomizerOptions: randomizeOpts,
-		minDuration: 0,
-		maxDuration: math.MaxInt32,
-		FilterOptions: filterOpts,
+		minDuration:       0,
+		maxDuration:       math.MaxInt32,
+		FilterOptions:     filterOpts,
 	}
 	fsys := fstest.MapFS{
 		"good_artist/should_be_selected.mp4": {

@@ -172,14 +172,14 @@ func TestValidateFilterOptions(t *testing.T) {
 	}
 	err := opts.validateFilterOptions()
 	assert.Equal(t, "Validate return nil", nil, err)
-	
+
 	opts = FilterOptions{
 		IncludeF: []string{"folderA"},
 		Skipf:    []string{},
 	}
 	err = opts.validateFilterOptions()
 	assert.Equal(t, "Validate return nil", nil, err)
-	
+
 	opts = FilterOptions{
 		IncludeF: []string{},
 		Skipf:    []string{"folderB"},

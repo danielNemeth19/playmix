@@ -14,8 +14,16 @@ func main() {
 		log.Fatalf("Param validation error: %s\n", err)
 	}
 
-	log.Printf("Path to be used: %s\n", params.MediaPath)
+	if params.playExistingFlag {
+		err := checkIfPlayListExists(params.FileName)
+		if err != nil {
+			log.Fatalf("Playlist cannot be played: %s", err)
+		}
+		playMixList(params.FileName, params.MarqueeOptions)
+		return
+	}
 
+	log.Printf("Path to be used: %s\n", params.MediaPath)
 	fsys := os.DirFS(params.MediaPath)
 	if params.extFlag {
 		extensions, err := collectExtensions(fsys)

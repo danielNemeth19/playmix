@@ -8,10 +8,10 @@ Project is aimed at creating randomized playlist files.
     * [Filtering Options](#filtering-options)
     * [Randomizing Options](#randomizing-options)
     * [Media Item Options](#media-item-options)
-- [File format](#file-format)
-- [Example XSPF format](#example-xspf-format)
-- [VLC Extensions quick guide](#vlc-extensions-quick-guide)
-- [TODO](#todo)
+* [File format](#file-format)
+* [Example XSPF format](#example-xspf-format)
+* [VLC Extensions quick guide](#vlc-extensions-quick-guide)
+* [TODO](#todo)
 
 ## Usage:
 The tool expects an environment variable called `MEDIA_SOURCE` to be set as the `root` of all media files. 

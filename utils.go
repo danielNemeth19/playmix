@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 )
@@ -26,6 +27,15 @@ func readInOptFile(fsys fs.FS, fn string) ([]byte, error) {
 	}
 	return data, nil
 }
+
+func checkIfPlayListExists(fileName string) error {
+	_, err := os.Stat(fileName)
+	if err != nil {
+		return fmt.Errorf("%s does not exists", fileName)
+	} 
+	return nil
+}
+
 func getPathParts(p string) []string {
 	dir := filepath.Dir(p)
 	trimmedDir := strings.TrimPrefix(dir, string(filepath.Separator))
@@ -44,10 +54,8 @@ func dumpConsole(s any) {
 }
 
 func isMediaFile(ext string) bool {
-	for _, v := range mediaExtensions {
-		if v == ext {
-			return true
-		}
+	if slices.Contains(mediaExtensions, ext) {
+		return true
 	}
 	return false
 }

@@ -48,7 +48,7 @@ func playMixList(fileName string, marquee Marquee) {
 		log.Fatal(err)
 	}
 
-	playerEventID, err := playerManager.Attach(vlc.MediaPlayerPlaying, func(e vlc.Event, _ interface{}) {
+	playerEventID, err := playerManager.Attach(vlc.MediaPlayerPlaying, func(e vlc.Event, _ any) {
 		setMarquee(player, marquee)
 	}, nil)
 
@@ -65,7 +65,7 @@ func playMixList(fileName string, marquee Marquee) {
 
 	// Register the media end reached event with the event manager.
 	quit := make(chan struct{})
-	eventCallback := func(event vlc.Event, userData interface{}) {
+	eventCallback := func(event vlc.Event, userData any) {
 		close(quit)
 	}
 

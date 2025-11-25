@@ -18,6 +18,7 @@ const (
 type Params struct {
 	extFlag           bool
 	playFlag          bool
+	playExistingFlag  bool
 	minDuration       int
 	maxDuration       int
 	fdate             time.Time
@@ -118,6 +119,7 @@ func getParams() (*Params, error) {
 	p := &Params{}
 	flag.BoolVar(&p.extFlag, "ext", false, "If specified, collects unique file extensions")
 	flag.BoolVar(&p.playFlag, "play", false, "If specified, playlist will be played")
+	flag.BoolVar(&p.playExistingFlag, "play-xspf", false, "If specified, existing playlist will be played")
 	flag.IntVar(&p.minDuration, "mindur", 0, "Minimum duration of media files to collect (in seconds)")
 	flag.IntVar(&p.maxDuration, "maxdur", math.MaxInt32, "Maximum duration of media files to collect (in seconds)")
 	fdate := flag.String("fdate", "20000101", "Files created after fdate will be considered")

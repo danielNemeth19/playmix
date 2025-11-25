@@ -8,6 +8,17 @@ import (
 	"time"
 )
 
+func TestCheckIfPlayListExists(t *testing.T) {
+	err := checkIfPlayListExists("non-existent-file")
+	assert.ErrorRaised(t, "must raise", err, true)
+
+	tmp, _ := os.CreateTemp("", "playlist_exists.xspf")
+	err = checkIfPlayListExists(tmp.Name())
+	assert.ErrorRaised(t, "must raise", err, false)
+	defer os.Remove(tmp.Name())
+	tmp.Close()
+}
+
 func TestGetPathPartsWithFile(t *testing.T) {
 	p := "/home/user/Music/Genre/Artist/Album/Track01.mp4"
 	expected := []string{"home", "user", "Music", "Genre", "Artist", "Album"}

@@ -14,14 +14,13 @@ Project is aimed at creating randomized playlist files.
 * [TODO](#todo)
 
 ## Usage:
-The tool expects an environment variable called `MEDIA_SOURCE` to be set as the `root` of all media files. 
-
-This path will be recursively searched for all .mp4 files, respecting the below options.
+The tool can be configured using either command-line or an options file (recommended for advance usage).
 
 ### General Options
     -h, --help                  Print help and exists
     -ext                        If specified, collects unique file extensions
     -play                       If specified, playlist will be automatically played
+    -play-xspf                  If specified, plays playlist file specified in the provided options file
     -fn                         Specifies the file name to use
                                 (defaults to pl-test.xspf) 
 
